@@ -7,7 +7,7 @@ PATH_LIB = lib
 PATH_OBJ = obj
 PATH_SRC = src
 
-SOURCES = main.c logger.c
+SOURCES = main.c logger.c utils.c core.c
 
 OBJECTS = $(SOURCES:%.c=$(PATH_OBJ)/%.o)
 

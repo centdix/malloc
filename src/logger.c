@@ -5,16 +5,20 @@ void    print_heap_state(t_heap *heap) {
         printf("ERROR: TRYING TO PRINT NULL HEAP\n");
         return ;
     }
-    printf("======= HEAP %p ======\n", heap);
-    printf("block count: %d\n", heap->block_count);
-    printf("total size: %d\n", heap->total_size);
-    printf("free size: %d\n", heap->free_size);
-    printf("  ** blocks **\n");
-	t_block *cur = (t_block *)HEAP_SHIFT(heap);
+    t_heap *cur = heap;
     while (cur) {
-        printf("\tblock %p\n", cur);
-        printf("\tsize: %d\n", cur->size);
-        printf("\tfreed: %d\n", cur->freed);
+        printf("======= HEAP %p ======\n", cur);
+        printf("block count: %zu\n", cur->block_count);
+        printf("total size: %zu\n", cur->total_size);
+        printf("free size: %zu\n", cur->free_size);
+        printf("  ** blocks **\n");
+        t_block *cur_block = (t_block *)HEAP_SHIFT(cur);
+        while (cur_block) {
+            printf("\tblock %p\n", cur_block);
+            printf("\tsize: %zu\n", cur_block->size);
+            printf("\tfreed: %d\n", cur_block->freed);
+            cur_block = cur_block->next;
+        }
         cur = cur->next;
     }
 }
