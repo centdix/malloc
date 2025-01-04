@@ -11,12 +11,21 @@
 
 void test_basic_allocation() {
     printf("Running test_basic_allocation...\n");
-    void *ptr = malloc(100); // Allocate 100 bytes
+    void *ptr = malloc(1); // Allocate 100 bytes
     assert(ptr != NULL);     // Ensure pointer is valid
-    printf("Allocated 100 bytes at %p\n", ptr);
+    printf("Allocated 1 bytes at %p\n", ptr);
+    show_alloc_mem();
+
+    void *ptr2 = malloc(100); // Allocate 100 bytes
+    assert(ptr2 != NULL);     // Ensure pointer is valid
+    printf("Allocated 100 bytes at %p\n", ptr2);
+    show_alloc_mem();
 
     free(ptr); // Free the memory
     printf("Freed memory at %p\n", ptr);
+	free(ptr2); // Free the memory
+    printf("Freed memory at %p\n", ptr2);
+    show_alloc_mem();
     printf("test_basic_allocation passed!\n\n");
 }
 
@@ -25,9 +34,11 @@ void test_zero_allocation() {
     void *ptr = malloc(0); // Allocate 0 bytes
     assert(ptr == NULL || ptr != NULL); // Both behaviors are acceptable
     printf("Allocated 0 bytes: %s\n", ptr ? "Non-NULL pointer" : "NULL pointer");
+    show_alloc_mem();
 
     free(ptr); // Should not crash
     printf("Freed memory (even if NULL)\n");
+    show_alloc_mem();
     printf("test_zero_allocation passed!\n\n");
 }
 
@@ -36,13 +47,16 @@ void test_realloc_shrink() {
     void *ptr = malloc(100);
     assert(ptr != NULL);
     memset(ptr, 'A', 100); // Fill memory with 'A'
+    show_alloc_mem();
 
     void *new_ptr = realloc(ptr, 50); // Shrink to 50 bytes
     assert(new_ptr != NULL);          // Ensure realloc succeeded
     printf("Shrunk memory to 50 bytes\n");
+    show_alloc_mem();
 
     free(new_ptr); // Free the memory
     printf("Freed memory after realloc\n");
+    show_alloc_mem();
     printf("test_realloc_shrink passed!\n\n");
 }
 
@@ -51,13 +65,16 @@ void test_realloc_grow() {
     void *ptr = malloc(50);
     assert(ptr != NULL);
     memset(ptr, 'B', 50); // Fill memory with 'B'
+    show_alloc_mem();
 
     void *new_ptr = realloc(ptr, 100); // Grow to 100 bytes
     assert(new_ptr != NULL);           // Ensure realloc succeeded
     printf("Grew memory to 100 bytes\n");
+    show_alloc_mem();
 
     free(new_ptr); // Free the memory
     printf("Freed memory after realloc\n");
+    show_alloc_mem();
     printf("test_realloc_grow passed!\n\n");
 }
 
@@ -67,9 +84,11 @@ void test_large_allocation() {
     void *ptr = malloc(large_size);
     assert(ptr != NULL); // Ensure allocation succeeds
     printf("Allocated large memory block (10 MB) at %p\n", ptr);
+    show_alloc_mem();
 
     free(ptr); // Free the large block
     printf("Freed large memory block\n");
+    show_alloc_mem();
     printf("test_large_allocation passed!\n\n");
 }
 
@@ -80,18 +99,22 @@ void test_fragmentation() {
     void *p3 = malloc(300);
     assert(p1 != NULL && p2 != NULL && p3 != NULL);
     printf("Allocated three blocks: %p, %p, %p\n", p1, p2, p3);
+    show_alloc_mem();
 
     free(p2); // Free the middle block
     printf("Freed the middle block at %p\n", p2);
+    show_alloc_mem();
 
     void *p4 = malloc(150); // Allocate a new block that fits into the freed space
     assert(p4 != NULL);
     printf("Reused freed block for a new allocation: %p\n", p4);
+    show_alloc_mem();
 
     free(p1);
     free(p3);
     free(p4);
     printf("Freed all remaining blocks\n");
+    show_alloc_mem();
     printf("test_fragmentation passed!\n\n");
 }
 
@@ -102,9 +125,11 @@ void test_double_free() {
 
     free(ptr); // Free once
     printf("Freed memory at %p\n", ptr);
+    show_alloc_mem();
 
     free(ptr); // Free again (should not crash)
     printf("Double free handled gracefully\n");
+    show_alloc_mem();
     printf("test_double_free passed!\n\n");
 }
 

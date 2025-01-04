@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
 
 typedef struct  s_heap {
     struct s_heap	*next;
@@ -21,8 +22,8 @@ typedef struct s_block {
 }               t_block;
 
 #define ALIGN(size, align) (((size) + (align) - 1) & ~((align) - 1))
-#define HEAP_SHIFT(start) ((void*)start + sizeof(t_heap))
-#define BLOCK_SHIFT(start) ((void*)start + sizeof(t_block))
+#define HEAP_SHIFT(start) ((void *)ALIGN((uintptr_t)(start) + sizeof(t_heap), sizeof(void *)))
+#define BLOCK_SHIFT(start) ((void *)ALIGN((uintptr_t)(start) + sizeof(t_block), sizeof(void *)))
 
 #define TINY_HEAP_ALLOCATION_SIZE (1 * getpagesize())
 #define TINY_BLOCK_SIZE (TINY_HEAP_ALLOCATION_SIZE / 128)
@@ -45,4 +46,4 @@ t_block		*find_last_block_of_heap(t_heap *heap);
 void		remove_block_from_heap(t_heap *heap, t_block *block);
 t_heap		*find_block_heap(t_block *block);
 
-void        print_heap_state(t_heap *heap);
+void        show_alloc_mem();

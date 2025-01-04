@@ -1,24 +1,36 @@
 #include "include.h"
 
-void    print_heap_state(t_heap *heap) {
-    if (heap == NULL) {
-        printf("ERROR: TRYING TO PRINT NULL HEAP\n");
-        return ;
-    }
-    t_heap *cur = heap;
-    while (cur) {
-        printf("======= HEAP %p ======\n", cur);
-        printf("block count: %zu\n", cur->block_count);
-        printf("total size: %zu\n", cur->total_size);
-        printf("free size: %zu\n", cur->free_size);
-        printf("  ** blocks **\n");
-        t_block *cur_block = (t_block *)HEAP_SHIFT(cur);
-        while (cur_block) {
-            printf("\tblock %p\n", cur_block);
-            printf("\tsize: %zu\n", cur_block->size);
-            printf("\tfreed: %d\n", cur_block->freed);
-            cur_block = cur_block->next;
+// Show allocated memory
+void show_alloc_mem() {
+    t_heap *heap = HEAD;
+    size_t total = 0;
+
+    printf("------\n");
+    while (heap) {
+        const char *heap_type;
+        if (heap->total_size == TINY_HEAP_ALLOCATION_SIZE) {
+            heap_type = "TINY";
+        } else if (heap->total_size == SMALL_HEAP_ALLOCATION_SIZE) {
+            heap_type = "SMALL";
+        } else {
+            heap_type = "LARGE";
         }
-        cur = cur->next;
+
+        printf("%s : %p\n", heap_type, (void *)heap);
+
+        t_block *block = (t_block *)HEAP_SHIFT(heap);
+        while (block) {
+            if (!block->freed) {
+                printf("%p - %p : %zu bytes\n",
+                       (void *)BLOCK_SHIFT(block),
+                       (void *)((char *)BLOCK_SHIFT(block) + block->size),
+                       block->size);
+                total += block->size;
+            }
+            block = block->next;
+        }
+        heap = heap->next;
     }
+    printf("Total : %zu bytes\n", total);
+    printf("------\n");
 }

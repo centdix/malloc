@@ -6,12 +6,11 @@ size_t		find_most_appropriate_heap_size(size_t size) {
 	} else if (size <= SMALL_BLOCK_SIZE) {
 		return SMALL_HEAP_ALLOCATION_SIZE;
 	} else {
-		return size + sizeof(t_heap) + sizeof(t_block);
+		return ALIGN(size + sizeof(t_heap) + sizeof(t_block), getpagesize());
 	}
 }
 
 int 		remove_heap(t_heap *heap) {
-	printf("remove heap => %p\n", heap);
 	if (heap == HEAD) {
 		HEAD = heap->next;
 		if (HEAD)
@@ -24,13 +23,10 @@ int 		remove_heap(t_heap *heap) {
 		if (next)
 			next->prev = prev;
 	}
-	printf("remove heap success\n");
-	printf("====================================\n");
 	return 0;
 }
 
 t_heap		*create_new_heap(size_t size) {
-	printf("create new heap\n");
 	size_t heap_size = find_most_appropriate_heap_size(size);
 	t_heap	*heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (heap == MAP_FAILED) {
@@ -42,7 +38,7 @@ t_heap		*create_new_heap(size_t size) {
 	heap->block_count = 0;
 	heap->free_size = heap_size - sizeof(t_heap);
 	heap->total_size = heap_size;
-	
+
 	t_heap *cur = HEAD;
 	if (cur) {
 		while (cur->next) {
@@ -51,13 +47,10 @@ t_heap		*create_new_heap(size_t size) {
 		cur->next = heap;
 		heap->prev = cur;
 	}
-	printf("create new heap success size => %zu, heap => %p\n", heap_size, heap);
-	printf("====================================\n");
 	return heap;
 }
 
 t_block		*create_new_block(t_heap *heap, size_t size) {
-	printf("create_new_block in heap => %p\n", heap);
 	t_block *block = (t_block*)HEAP_SHIFT(heap);
 	if (heap->block_count > 0) {
 		int offset = 0;
@@ -68,7 +61,6 @@ t_block		*create_new_block(t_heap *heap, size_t size) {
 		}
 		if (offset + sizeof(t_block) + size > heap->total_size) {
 			printf("Not enough space in heap\n");
-			printf("====================================\n");
 			return NULL;
 		}
 		block = (t_block *)(HEAP_SHIFT(heap) + offset);
@@ -82,12 +74,10 @@ t_block		*create_new_block(t_heap *heap, size_t size) {
 	block->freed = false;
 	heap->block_count += 1;
 	heap->free_size -= size;
-	printf("====================================\n");
 	return BLOCK_SHIFT(block);
 }
 
 t_block		*fill_freed_block(t_heap *heap, size_t size) {
-	printf("try filling block in heap => %p\n", heap);
 	t_block *cur = (t_block *)HEAP_SHIFT(heap);
 	while (cur) {
 		if (cur->freed && cur->size >= size) {
@@ -99,8 +89,6 @@ t_block		*fill_freed_block(t_heap *heap, size_t size) {
 		}
 		cur = cur->next;
 	}
-	printf("fill_freed_block failed\n");
-	printf("====================================\n");
 	return NULL;
 }
 
@@ -143,7 +131,6 @@ t_block		*find_last_block_of_heap(t_heap *heap) {
 }
 
 void		try_to_merge_block(t_heap *heap, t_block *block) {
-	printf("try_to_merge_block in heap => %p\n", heap);
 	
 	if (block->next && block->next->freed == true) {
 		t_block *next = block->next;
@@ -153,7 +140,6 @@ void		try_to_merge_block(t_heap *heap, t_block *block) {
 			next->next->prev = block;
 		heap->block_count -= 1;
 		printf("try_to_merge_block success in heap => %p\n", heap);
-		printf("====================================\n");
 	}
 	if (block->prev && block->prev->freed == true) {
 		t_block *prev = block->prev;
@@ -163,6 +149,5 @@ void		try_to_merge_block(t_heap *heap, t_block *block) {
 			prev->prev->next = block;
 		heap->block_count -= 1;
 		printf("try_to_merge_block success in heap => %p\n", heap);
-		printf("====================================\n");
 	}
 }

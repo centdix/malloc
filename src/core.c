@@ -23,7 +23,7 @@ void *my_malloc(size_t size) {
 	t_block *ret = NULL;
 	size_t appropriate_heap_size = find_most_appropriate_heap_size(size);
 	while (heap) {
-		if (heap->free_size >= size && heap->total_size <= appropriate_heap_size) {
+		if (heap->free_size >= size && heap->total_size == appropriate_heap_size) {
 			// Try filling freed block
 			ret = fill_freed_block(heap, size);
 			if (!ret) {
@@ -46,30 +46,24 @@ void *my_malloc(size_t size) {
 }
 
 void my_free(void *addr) {
-	printf("my_free addr => %p\n", addr);
 	if (!addr) return;
 	t_block *block = addr - sizeof(t_block);
 	t_heap *heap = find_block_heap(block);
 	if (!heap) {
 		printf("ERROR: TRYING TO FREE BLOCK NOT IN HEAP\n");
 		return ;
-	} else {
-		printf("found heap => %p\n", heap);
 	}
 	block->freed = true;
 	heap->free_size += block->size;
 	try_to_merge_block(heap, block);
 	t_block *last = find_last_block_of_heap(heap);
 	if (last == block) {
-		printf("last block in heap => %p\n", last);
 		remove_block_from_heap(heap, block);
 	}
 	if (heap->block_count == 0) {
-		printf("heap block count is 0, deallocating\n");
 		remove_heap(heap);
 		munmap(heap, heap->total_size);
 	}
-	printf("====================================\n");
 }
 
 void *my_realloc(void *addr, size_t size) {
@@ -90,8 +84,6 @@ void *my_realloc(void *addr, size_t size) {
 	if (!heap) {
 		printf("ERROR: TRYING TO REALLOC BLOCK NOT IN HEAP\n");
 		return NULL;
-	} else {
-		printf("found heap => %p\n", heap);
 	}
 
 	// If new size is smaller that previous size, shrink the block
