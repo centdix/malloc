@@ -32,12 +32,17 @@ int 		remove_heap(t_heap *heap) {
 t_heap		*create_new_heap(size_t size) {
 	printf("create new heap\n");
 	size_t heap_size = find_most_appropriate_heap_size(size);
-	t_heap	*heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	t_heap	*heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (heap == MAP_FAILED) {
+		printf("mmap failed");
+		return NULL;
+	}
 	heap->next = NULL;
 	heap->prev = NULL;
 	heap->block_count = 0;
-	heap->free_size = heap_size;
+	heap->free_size = heap_size - sizeof(t_heap);
 	heap->total_size = heap_size;
+	
 	t_heap *cur = HEAD;
 	if (cur) {
 		while (cur->next) {
@@ -81,7 +86,7 @@ t_block		*create_new_block(t_heap *heap, size_t size) {
 	return BLOCK_SHIFT(block);
 }
 
-t_block		*try_filling_block_in_heap(t_heap *heap, size_t size) {
+t_block		*fill_freed_block(t_heap *heap, size_t size) {
 	printf("try filling block in heap => %p\n", heap);
 	t_block *cur = (t_block *)HEAP_SHIFT(heap);
 	while (cur) {
@@ -89,12 +94,12 @@ t_block		*try_filling_block_in_heap(t_heap *heap, size_t size) {
 			cur->freed = false;
 			cur->size = size;
 			heap->free_size -= cur->size;
-			printf("try_filling_block_in_heap success in heap => %p\n", heap);
+			printf("fill_freed_block success in heap => %p\n", heap);
 			return BLOCK_SHIFT(cur);
 		}
 		cur = cur->next;
 	}
-	printf("try_filling_block_in_heap failed\n");
+	printf("fill_freed_block failed\n");
 	printf("====================================\n");
 	return NULL;
 }
@@ -142,7 +147,7 @@ void		try_to_merge_block(t_heap *heap, t_block *block) {
 	
 	if (block->next && block->next->freed == true) {
 		t_block *next = block->next;
-		block->size += next->size;
+		block->size += sizeof(t_block) + next->size;
 		block->next = next->next;
 		if (next->next)
 			next->next->prev = block;
@@ -152,7 +157,7 @@ void		try_to_merge_block(t_heap *heap, t_block *block) {
 	}
 	if (block->prev && block->prev->freed == true) {
 		t_block *prev = block->prev;
-		block->size += prev->size;
+		block->size += sizeof(t_block) + prev->size;
 		block->prev = prev->prev;
 		if (prev->prev)
 			prev->prev->next = block;

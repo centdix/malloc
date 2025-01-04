@@ -20,6 +20,7 @@ typedef struct s_block {
 	bool			freed;
 }               t_block;
 
+#define ALIGN(size, align) (((size) + (align) - 1) & ~((align) - 1))
 #define HEAP_SHIFT(start) ((void*)start + sizeof(t_heap))
 #define BLOCK_SHIFT(start) ((void*)start + sizeof(t_block))
 
@@ -38,7 +39,7 @@ size_t      find_most_appropriate_heap_size(size_t size);
 int         remove_heap(t_heap *heap);
 t_heap	    *create_new_heap(size_t size);
 t_block     *create_new_block(t_heap *heap, size_t size);
-t_block	    *try_filling_block_in_heap(t_heap *heap, size_t size);
+t_block	    *fill_freed_block(t_heap *heap, size_t size);
 void		try_to_merge_block(t_heap *heap, t_block *block);
 t_block		*find_last_block_of_heap(t_heap *heap);
 void		remove_block_from_heap(t_heap *heap, t_block *block);
