@@ -55,7 +55,7 @@ t_block		*create_new_block(t_heap *heap, size_t size) {
 	if (heap->block_count > 0) {
 		int offset = 0;
 		t_block	*cur = block;
-		for (int i = 0; i < heap->block_count; i++) {
+		for (size_t i = 0; i < heap->block_count; i++) {
 			cur = (t_block *)(HEAP_SHIFT(heap) + offset);
 			offset += cur->size + sizeof(t_block);
 		}

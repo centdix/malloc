@@ -25,9 +25,9 @@ typedef struct s_block {
 #define HEAP_SHIFT(start) ((void *)ALIGN((uintptr_t)(start) + sizeof(t_heap), sizeof(void *)))
 #define BLOCK_SHIFT(start) ((void *)ALIGN((uintptr_t)(start) + sizeof(t_block), sizeof(void *)))
 
-#define TINY_HEAP_ALLOCATION_SIZE (1 * getpagesize())
+#define TINY_HEAP_ALLOCATION_SIZE ((size_t)(1 * getpagesize()))
 #define TINY_BLOCK_SIZE (TINY_HEAP_ALLOCATION_SIZE / 128)
-#define SMALL_HEAP_ALLOCATION_SIZE (4 * getpagesize())
+#define SMALL_HEAP_ALLOCATION_SIZE ((size_t)(4 * getpagesize()))
 #define SMALL_BLOCK_SIZE (SMALL_HEAP_ALLOCATION_SIZE / 128)
 
 extern t_heap	*HEAD;
