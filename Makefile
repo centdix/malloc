@@ -53,7 +53,7 @@ re: fclean all
 
 # Compile the test binary
 test: $(NAME)
-	$(CC) $(CFLAGS) -o $(TEST_BIN) $(PATH_TEST)/test.c -I$(PATH_INC) -L. -lft_malloc
+	$(CC) $(CFLAGS) -o $(TEST_BIN) $(PATH_TEST)/thread.c -I$(PATH_INC) -L. -lft_malloc
 	@echo "Test binary $(TEST_BIN) created!"
 
 # Run the test binary

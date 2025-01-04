@@ -107,8 +107,8 @@ t_heap		*find_block_heap(t_block *block) {
 }
 
 void		remove_block_from_heap(t_heap *heap, t_block *block) {
+	printf("remove\n");
 	t_block *cur = (t_block *)HEAP_SHIFT(heap);
-	heap->block_count -= 1;
 	while (cur) {
 		if (cur == block) {
 			t_block *next = cur->next;
@@ -117,6 +117,9 @@ void		remove_block_from_heap(t_heap *heap, t_block *block) {
 				next->prev = prev;
 			if (prev)
 				prev->next = next;
+			heap->block_count -= 1;
+			printf("removed\n");
+			break;
 		}
 		cur = cur->next;
 	}

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
+#include <pthread.h>
 
 typedef struct  s_heap {
     struct s_heap	*next;
@@ -31,6 +32,8 @@ typedef struct s_block {
 #define SMALL_BLOCK_SIZE (SMALL_HEAP_ALLOCATION_SIZE / 128)
 
 extern t_heap	*HEAD;
+extern pthread_mutex_t malloc_mutex;
+
 
 void        *my_malloc(size_t size);
 void        my_free(void *addr);

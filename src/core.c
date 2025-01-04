@@ -1,6 +1,8 @@
 #include "include.h"
 
-t_heap		*HEAD = NULL;
+t_heap			*HEAD = NULL;
+pthread_mutex_t	malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 void *my_malloc(size_t size) {
 	// If size is 0, return
@@ -9,11 +11,13 @@ void *my_malloc(size_t size) {
 	}
 	size = ALIGN(size, sizeof(void *));
 
+	pthread_mutex_lock(&malloc_mutex);
 	// Create new heap if no heap created until now
 	if (HEAD == NULL) {
 		HEAD = create_new_heap(size);
 		if (!HEAD) {
 			printf("Failed to create heap");
+			pthread_mutex_unlock(&malloc_mutex);
 			return NULL;
 		}
 	}
@@ -30,8 +34,10 @@ void *my_malloc(size_t size) {
 				// Create a new block
 				ret = create_new_block(heap, size);
 			}
-			//
-			if (ret) return ret;
+			if (ret) {
+				pthread_mutex_unlock(&malloc_mutex);
+				return ret;
+			}
 		}
 		heap = heap->next;
 	}
@@ -42,15 +48,19 @@ void *my_malloc(size_t size) {
 		ret = create_new_block(heap, size);
 	}
 
+	pthread_mutex_unlock(&malloc_mutex);
 	return ret;
 }
 
 void my_free(void *addr) {
 	if (!addr) return;
+
+	pthread_mutex_lock(&malloc_mutex);
 	t_block *block = addr - sizeof(t_block);
 	t_heap *heap = find_block_heap(block);
 	if (!heap) {
 		printf("ERROR: TRYING TO FREE BLOCK NOT IN HEAP\n");
+		pthread_mutex_unlock(&malloc_mutex);
 		return ;
 	}
 	block->freed = true;
@@ -58,12 +68,16 @@ void my_free(void *addr) {
 	try_to_merge_block(heap, block);
 	t_block *last = find_last_block_of_heap(heap);
 	if (last == block) {
+		printf("last\n");
 		remove_block_from_heap(heap, block);
 	}
 	if (heap->block_count == 0) {
+		printf("removing heap\n");
 		remove_heap(heap);
 		munmap(heap, heap->total_size);
+		printf("removed heap\n");
 	}
+	pthread_mutex_unlock(&malloc_mutex);
 }
 
 void *my_realloc(void *addr, size_t size) {
@@ -88,6 +102,7 @@ void *my_realloc(void *addr, size_t size) {
 
 	// If new size is smaller that previous size, shrink the block
 	if (block->size > size) {
+		pthread_mutex_lock(&malloc_mutex);
 		size_t leftover_size = block->size - size;
 
 		if (leftover_size > sizeof(t_block) + 1) { // Ensure leftover space can form a new block
@@ -112,17 +127,20 @@ void *my_realloc(void *addr, size_t size) {
 			}
 		}
 
+		pthread_mutex_unlock(&malloc_mutex);
 		return BLOCK_SHIFT(block); // Return the original pointer
 	}
 
 	// If next block is free and has enough space, merge the blocks
 	if (block->next && block->next->freed == true && block->size + sizeof(t_block) + block->next->size >= size) {
+		pthread_mutex_lock(&malloc_mutex);
 		t_block *next = block->next;
 		block->size += next->size;
 		block->next = next->next;
 		if (next->next)
 			next->next->prev = block;
 		heap->block_count -= 1;
+		pthread_mutex_unlock(&malloc_mutex);
 		return BLOCK_SHIFT(block);
 	}
 	void *new_addr = my_malloc(size);
