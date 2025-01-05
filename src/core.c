@@ -4,7 +4,6 @@ t_heap			*HEAD = NULL;
 pthread_mutex_t	g_malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *_malloc(size_t size) {
-	printf("malloc size: %zu\n", size);
 	// If size is 0, return
 	if (size == 0) {
 		return NULL;
@@ -14,9 +13,7 @@ void *_malloc(size_t size) {
 	// Create new heap if no heap created until now
 	if (HEAD == NULL) {
 		HEAD = create_new_heap(size);
-		printf("created new heap\n");
 		if (!HEAD) {
-			printf("Failed to create heap");
 			return NULL;
 		}
 	}
@@ -29,17 +26,11 @@ void *_malloc(size_t size) {
 		if (heap->free_size >= size && heap->total_size == appropriate_heap_size) {
 			// Try filling freed block
 			ret = fill_freed_block(heap, size);
-			printf("fill_freed_block: %p\n", ret);
 			if (!ret) {
 				// Create a new block
 				ret = create_new_block(heap, size);
-				printf("create_new_block: %p\n", ret);
-				if (!ret) {
-					printf("create_new_block failed\n");
-				}
 			}
 			if (ret) {
-				printf("returning ret\n");
 				return ret;
 			}
 		}
@@ -48,9 +39,7 @@ void *_malloc(size_t size) {
 
 	// If no appropriate heap found, create a new one
 	if (!ret) {
-		printf("creating new heap\n");
 		heap = create_new_heap(size);
-		printf("creating new block\n");
 		ret = create_new_block(heap, size);
 	}
 
@@ -61,7 +50,6 @@ void _free(void *addr) {
 	if (!addr) return;
 
 	t_block *block = (t_block *)(addr - sizeof(t_block));
-	printf("block: %p\n", block);
 	t_heap *heap = find_block_heap(block);
 	if (!heap) {
 		printf("ERROR: TRYING TO FREE BLOCK NOT IN HEAP\n");
@@ -76,16 +64,13 @@ void _free(void *addr) {
 	block->freed = true;
 	heap->free_size += block->size;
 	try_to_merge_block(heap, block);
-	printf("try_to_merge_block: %p\n", block);
 	t_block *last = find_last_block_of_heap(heap);
 	if (last == block) {
 		remove_block_from_heap(heap, block);
-		printf("removed block\n");
 	}
 	if (heap->block_count == 0) {
 		remove_heap(heap);
 		munmap(heap, heap->total_size);
-		printf("removed heap\n");
 	}
 }
 

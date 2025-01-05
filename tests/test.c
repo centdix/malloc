@@ -151,7 +151,6 @@ void test_random_operations() {
                     size_t size = (rand() % 1000) + 1;  // Random size between 1-1000
                     ptrs[ptr_count] = malloc(size);
                     assert(ptrs[ptr_count] != NULL);
-                    printf("malloc(%zu) at %p\n", size, ptrs[ptr_count]);
                     ptr_count++;
                 }
                 break;
@@ -160,7 +159,6 @@ void test_random_operations() {
                 if (ptr_count > 0) {
                     int index = rand() % ptr_count;
                     if (ptrs[index] != NULL) {
-                        printf("free at %p\n", ptrs[index]);
                         free(ptrs[index]);
                         ptrs[index] = NULL;
                         // Compact array
@@ -181,7 +179,6 @@ void test_random_operations() {
                         if (!new_ptr) {
 							printf("realloc failed\n");
 						}
-                        printf("realloc(%p, %zu) -> %p\n", ptrs[index], new_size, new_ptr);
                         ptrs[index] = new_ptr;
                     }
                 }

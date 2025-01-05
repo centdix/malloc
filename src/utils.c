@@ -30,7 +30,7 @@ t_heap		*create_new_heap(size_t size) {
 	size_t heap_size = find_most_appropriate_heap_size(size);
 	t_heap	*heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (heap == MAP_FAILED) {
-		printf("mmap failed");
+		printf("ERROR: MMAP FAILED\n");
 		return NULL;
 	}
 	heap->next = NULL;
@@ -83,7 +83,7 @@ t_block		*fill_freed_block(t_heap *heap, size_t size) {
 	if (!heap) return NULL;
 
 	t_block *best_fit = NULL;
-	size_t smallest_suitable_size = (size_t)-1;
+	size_t smallest_suitable_size = SIZE_MAX;
 
 	// Find the best fit among freed blocks
 	t_block *cur = (t_block *)HEAP_SHIFT(heap);
@@ -151,7 +151,6 @@ void		remove_block_from_heap(t_heap *heap, t_block *block) {
 			if (prev)
 				prev->next = next;
 			heap->block_count -= 1;
-			printf("removed block from heap => %p\n", heap);
 			break;
 		}
 		cur = cur->next;
