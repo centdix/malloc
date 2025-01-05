@@ -7,10 +7,11 @@ PATH_SRC = src
 PATH_INC = inc
 PATH_OBJ = obj
 PATH_TEST = tests
-TEST_BIN = test_mymalloc
+TEST_BIN = test_malloc
 
 SOURCES = $(PATH_SRC)/core.c $(PATH_SRC)/logger.c $(PATH_SRC)/utils.c
 OBJECTS = $(SOURCES:$(PATH_SRC)/%.c=$(PATH_OBJ)/%.o)
+TESTS = $(PATH_TEST)/main.c $(PATH_TEST)/test.c $(PATH_TEST)/thread.c
 
 # Ensure HOSTTYPE is set
 ifeq ($(HOSTTYPE),)
@@ -53,7 +54,7 @@ re: fclean all
 
 # Compile the test binary
 test: $(NAME)
-	$(CC) $(CFLAGS) -o $(TEST_BIN) $(PATH_TEST)/thread.c -I$(PATH_INC) -L. -lft_malloc
+	$(CC) $(CFLAGS) -o $(TEST_BIN) $(TESTS) -I$(PATH_INC) -I$(PATH_TEST) -L. -lft_malloc -pthread
 	@echo "Test binary $(TEST_BIN) created!"
 
 # Run the test binary

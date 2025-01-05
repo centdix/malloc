@@ -11,7 +11,7 @@
 
 void test_basic_allocation() {
     printf("Running test_basic_allocation...\n");
-    void *ptr = malloc(1); // Allocate 100 bytes
+    void *ptr = malloc(1); // Allocate 1 bytes
     assert(ptr != NULL);     // Ensure pointer is valid
     printf("Allocated 1 bytes at %p\n", ptr);
     show_alloc_mem();
@@ -133,17 +133,67 @@ void test_double_free() {
     printf("test_double_free passed!\n\n");
 }
 
-int main() {
-    printf("Starting basic malloc tests...\n\n");
-
-    test_basic_allocation();
-    test_zero_allocation();
-    test_realloc_shrink();
-    test_realloc_grow();
-    test_large_allocation();
-    test_fragmentation();
-    test_double_free();
-
-    printf("All tests passed!\n");
-    return 0;
+void test_random_operations() {
+    printf("Running test_random_operations...\n");
+    
+    // Array to keep track of allocated pointers
+    void *ptrs[20] = {NULL};
+    int ptr_count = 0;
+    
+    // Perform 20 random operations
+    for (int i = 0; i < 20; i++) {
+        int operation = rand() % 3;  // 0: malloc, 1: free, 2: realloc
+        
+        printf("Operation %d: ", i + 1);
+        switch (operation) {
+            case 0: // malloc
+                if (ptr_count < 20) {
+                    size_t size = (rand() % 1000) + 1;  // Random size between 1-1000
+                    ptrs[ptr_count] = malloc(size);
+                    assert(ptrs[ptr_count] != NULL);
+                    printf("malloc(%zu) at %p\n", size, ptrs[ptr_count]);
+                    ptr_count++;
+                }
+                break;
+                
+            case 1: // free
+                if (ptr_count > 0) {
+                    int index = rand() % ptr_count;
+                    if (ptrs[index] != NULL) {
+                        printf("free at %p\n", ptrs[index]);
+                        free(ptrs[index]);
+                        ptrs[index] = NULL;
+                        // Compact array
+                        for (int j = index; j < ptr_count - 1; j++) {
+                            ptrs[j] = ptrs[j + 1];
+                        }
+                        ptr_count--;
+                    }
+                }
+                break;
+                
+            case 2: // realloc
+                if (ptr_count > 0) {
+                    int index = rand() % ptr_count;
+                    if (ptrs[index] != NULL) {
+                        size_t new_size = (rand() % 1000) + 1;
+                        void *new_ptr = realloc(ptrs[index], new_size);
+                        assert(new_ptr != NULL);
+                        printf("realloc(%p, %zu) -> %p\n", ptrs[index], new_size, new_ptr);
+                        ptrs[index] = new_ptr;
+                    }
+                }
+                break;
+        }
+        show_alloc_mem();
+    }
+    
+    // Cleanup: free any remaining allocations
+    for (int i = 0; i < ptr_count; i++) {
+        if (ptrs[i] != NULL) {
+            free(ptrs[i]);
+        }
+    }
+    
+    printf("test_random_operations passed!\n\n");
 }

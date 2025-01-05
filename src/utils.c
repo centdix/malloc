@@ -51,6 +51,10 @@ t_heap		*create_new_heap(size_t size) {
 }
 
 t_block		*create_new_block(t_heap *heap, size_t size) {
+	if (!heap || size > heap->free_size) {
+		return NULL;
+	}
+
 	t_block *block = (t_block*)HEAP_SHIFT(heap);
 	if (heap->block_count > 0) {
 		int offset = 0;
@@ -92,14 +96,18 @@ t_block		*fill_freed_block(t_heap *heap, size_t size) {
 	return NULL;
 }
 
-t_heap		*find_block_heap(t_block *block) {
-	t_heap	*heap = HEAD;
+t_heap *find_block_heap(t_block *block) {
+	if (!block || !HEAD) {
+		return NULL;
+	}
+
+	t_heap *heap = HEAD;
 	while (heap) {
-		t_block *cur = (t_block *)HEAP_SHIFT(heap);
-		while (cur) {
-			if (cur == block)
-				return heap;
-			cur = cur->next;
+		void *heap_start = HEAP_SHIFT(heap);
+		void *heap_end = (void *)((char *)heap + heap->total_size);
+		
+		if ((void *)block >= heap_start && (void *)block < heap_end) {
+			return heap;
 		}
 		heap = heap->next;
 	}
@@ -107,7 +115,6 @@ t_heap		*find_block_heap(t_block *block) {
 }
 
 void		remove_block_from_heap(t_heap *heap, t_block *block) {
-	printf("remove\n");
 	t_block *cur = (t_block *)HEAP_SHIFT(heap);
 	while (cur) {
 		if (cur == block) {
@@ -118,7 +125,7 @@ void		remove_block_from_heap(t_heap *heap, t_block *block) {
 			if (prev)
 				prev->next = next;
 			heap->block_count -= 1;
-			printf("removed\n");
+			printf("removed block from heap => %p\n", heap);
 			break;
 		}
 		cur = cur->next;
@@ -134,23 +141,35 @@ t_block		*find_last_block_of_heap(t_heap *heap) {
 }
 
 void		try_to_merge_block(t_heap *heap, t_block *block) {
+	if (!heap || !block) {
+		return;
+	}
 	
+	// Merge with next block if possible
 	if (block->next && block->next->freed == true) {
 		t_block *next = block->next;
-		block->size += sizeof(t_block) + next->size;
-		block->next = next->next;
-		if (next->next)
-			next->next->prev = block;
-		heap->block_count -= 1;
-		printf("try_to_merge_block success in heap => %p\n", heap);
+		if ((void *)next >= HEAP_SHIFT(heap) && 
+			(void *)next < (void *)((char *)heap + heap->total_size)) {
+			block->size += sizeof(t_block) + next->size;
+			block->next = next->next;
+			if (next->next)
+				next->next->prev = block;
+			heap->block_count -= 1;
+			printf("try_to_merge_block success in heap => %p\n", heap);
+		}
 	}
+
+	// Merge with previous block if possible
 	if (block->prev && block->prev->freed == true) {
 		t_block *prev = block->prev;
-		block->size += sizeof(t_block) + prev->size;
-		block->prev = prev->prev;
-		if (prev->prev)
-			prev->prev->next = block;
-		heap->block_count -= 1;
-		printf("try_to_merge_block success in heap => %p\n", heap);
+		if ((void *)prev >= HEAP_SHIFT(heap) && 
+			(void *)prev < (void *)((char *)heap + heap->total_size)) {
+			prev->size += sizeof(t_block) + block->size;
+			prev->next = block->next;
+			if (block->next)
+				block->next->prev = prev;
+			heap->block_count -= 1;
+			printf("try_to_merge_block success in heap => %p\n", heap);
+		}
 	}
 }

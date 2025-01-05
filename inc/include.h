@@ -32,7 +32,7 @@ typedef struct s_block {
 #define SMALL_BLOCK_SIZE (SMALL_HEAP_ALLOCATION_SIZE / 128)
 
 extern t_heap	*HEAD;
-extern pthread_mutex_t malloc_mutex;
+extern pthread_mutex_t g_malloc_mutex;
 
 
 void        *my_malloc(size_t size);

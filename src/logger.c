@@ -16,7 +16,7 @@ void show_alloc_mem() {
             heap_type = "LARGE";
         }
 
-        printf("%s : %p\n", heap_type, (void *)heap);
+        printf("%s : %p | %zu blocks\n", heap_type, (void *)heap, heap->block_count);
 
         t_block *block = (t_block *)HEAP_SHIFT(heap);
         while (block) {
@@ -26,6 +26,8 @@ void show_alloc_mem() {
                        (void *)((char *)BLOCK_SHIFT(block) + block->size),
                        block->size);
                 total += block->size;
+            } else {
+                printf("freed block => %p\n", block);
             }
             block = block->next;
         }
