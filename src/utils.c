@@ -55,45 +55,71 @@ t_block		*create_new_block(t_heap *heap, size_t size) {
 		return NULL;
 	}
 
-	t_block *block = (t_block*)HEAP_SHIFT(heap);
-	if (heap->block_count > 0) {
-		int offset = 0;
-		t_block	*cur = block;
-		for (size_t i = 0; i < heap->block_count; i++) {
-			cur = (t_block *)(HEAP_SHIFT(heap) + offset);
-			offset += cur->size + sizeof(t_block);
+	t_block *block;
+	if (heap->block_count == 0) {
+		// First block in heap
+		block = (t_block*)HEAP_SHIFT(heap);
+	} else {
+		// Find the last block and add after it
+		t_block *last = (t_block*)HEAP_SHIFT(heap);
+		while (last->next) {
+			last = last->next;
 		}
-		if (offset + sizeof(t_block) + size > heap->total_size) {
-			printf("Not enough space in heap\n");
-			return NULL;
-		}
-		block = (t_block *)(HEAP_SHIFT(heap) + offset);
-		block->prev = cur;
-		cur->next = block;
+		block = (t_block*)((char*)last + sizeof(t_block) + last->size);
+		last->next = block;
+		block->prev = last;
 	}
+
 	block->next = NULL;
-	if (heap->block_count == 0)
-		block->prev = NULL;
 	block->size = size;
 	block->freed = false;
-	heap->block_count += 1;
-	heap->free_size -= size;
+	heap->block_count++;
+	heap->free_size -= (size + sizeof(t_block));
+
 	return BLOCK_SHIFT(block);
 }
 
 t_block		*fill_freed_block(t_heap *heap, size_t size) {
+	if (!heap) return NULL;
+
+	t_block *best_fit = NULL;
+	size_t smallest_suitable_size = (size_t)-1;
+
+	// Find the best fit among freed blocks
 	t_block *cur = (t_block *)HEAP_SHIFT(heap);
 	while (cur) {
 		if (cur->freed && cur->size >= size) {
-			cur->freed = false;
-			cur->size = size;
-			heap->free_size -= cur->size;
-			printf("fill_freed_block success in heap => %p\n", heap);
-			return BLOCK_SHIFT(cur);
+			if (cur->size < smallest_suitable_size) {
+				best_fit = cur;
+				smallest_suitable_size = cur->size;
+			}
 		}
 		cur = cur->next;
 	}
-	return NULL;
+
+	if (!best_fit) return NULL;
+
+	// Split block if it's significantly larger
+	if (best_fit->size >= size + sizeof(t_block) + 16) {
+		t_block *new_block = (t_block *)((char *)best_fit + sizeof(t_block) + size);
+		new_block->size = best_fit->size - size - sizeof(t_block);
+		new_block->freed = true;
+		new_block->next = best_fit->next;
+		new_block->prev = best_fit;
+		
+		if (best_fit->next) {
+			best_fit->next->prev = new_block;
+		}
+		
+		best_fit->next = new_block;
+		best_fit->size = size;
+		heap->block_count++;
+	}
+
+	best_fit->freed = false;
+	heap->free_size -= best_fit->size;
+	
+	return BLOCK_SHIFT(best_fit);
 }
 
 t_heap *find_block_heap(t_block *block) {
@@ -144,32 +170,28 @@ void		try_to_merge_block(t_heap *heap, t_block *block) {
 	if (!heap || !block) {
 		return;
 	}
-	
+
 	// Merge with next block if possible
-	if (block->next && block->next->freed == true) {
+	if (block->next && block->next->freed) {
 		t_block *next = block->next;
-		if ((void *)next >= HEAP_SHIFT(heap) && 
-			(void *)next < (void *)((char *)heap + heap->total_size)) {
-			block->size += sizeof(t_block) + next->size;
-			block->next = next->next;
-			if (next->next)
-				next->next->prev = block;
-			heap->block_count -= 1;
-			printf("try_to_merge_block success in heap => %p\n", heap);
+		block->size += sizeof(t_block) + next->size;
+		block->next = next->next;
+		if (next->next) {
+			next->next->prev = block;
 		}
+		heap->block_count--;
+		heap->free_size += sizeof(t_block);
 	}
 
 	// Merge with previous block if possible
-	if (block->prev && block->prev->freed == true) {
+	if (block->prev && block->prev->freed) {
 		t_block *prev = block->prev;
-		if ((void *)prev >= HEAP_SHIFT(heap) && 
-			(void *)prev < (void *)((char *)heap + heap->total_size)) {
-			prev->size += sizeof(t_block) + block->size;
-			prev->next = block->next;
-			if (block->next)
-				block->next->prev = prev;
-			heap->block_count -= 1;
-			printf("try_to_merge_block success in heap => %p\n", heap);
+		prev->size += sizeof(t_block) + block->size;
+		prev->next = block->next;
+		if (block->next) {
+			block->next->prev = prev;
 		}
+		heap->block_count--;
+		heap->free_size += sizeof(t_block);
 	}
 }
