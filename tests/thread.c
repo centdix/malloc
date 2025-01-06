@@ -3,15 +3,15 @@
 #include <pthread.h>
 #include <string.h>
 #include <assert.h>
-#include "include.h"
+#include "test_include.h"
 
 // Replace with your custom malloc implementation
 #define malloc my_malloc
 #define free my_free
 #define realloc my_realloc
 
-#define NUM_THREADS 2
-#define NUM_ALLOCATIONS 8
+#define NUM_THREADS 5
+#define NUM_ALLOCATIONS 15
 
 void *thread_function(void *arg) {
     int thread_id = *(int *)arg;

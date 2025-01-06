@@ -1,7 +1,7 @@
 #ifndef TEST_INCLUDE_H
 #define TEST_INCLUDE_H
 
-#include "include.h"
+#include "../inc/malloc.h"
 
 // Test functions from test.c
 void test_basic_allocation(void);

@@ -1,62 +1,93 @@
-# Variables
+# Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g
-NAME = libft_malloc_$(HOSTTYPE).so
-LINK_NAME = libft_malloc.so
-PATH_SRC = src
-PATH_INC = inc
-PATH_OBJ = obj
-PATH_TEST = tests
-TEST_BIN = test_malloc
+CFLAGS = -Wall -Wextra -Werror -fPIC
+LDFLAGS = -shared
 
-SOURCES = $(PATH_SRC)/core.c $(PATH_SRC)/logger.c $(PATH_SRC)/utils.c
-OBJECTS = $(SOURCES:$(PATH_SRC)/%.c=$(PATH_OBJ)/%.o)
-TESTS = $(PATH_TEST)/main.c $(PATH_TEST)/test.c $(PATH_TEST)/thread.c
+# Directories
+SRC_DIR = src
+INC_DIR = inc
+OBJ_DIR = obj
+LIBFT_DIR = libft
 
-# Ensure HOSTTYPE is set
-ifeq ($(HOSTTYPE),)
-HOSTTYPE := $(shell uname -m)_$(shell uname -s)
-endif
+# Source files
+SRC = $(SRC_DIR)/malloc.c \
+      $(SRC_DIR)/free.c \
+      $(SRC_DIR)/realloc.c \
+      $(SRC_DIR)/utils.c
 
-# Rules
-.PHONY: all clean fclean re test run_test
+# Test source files
+TEST_SRCS = tests/main.c \
+            tests/test.c \
+            tests/thread.c
 
-# Default rule: build the shared library
-all: $(NAME) $(LINK_NAME)
+# Object files
+OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+TEST_OBJ = $(TEST_SRCS:%.c=$(OBJ_DIR)/%.o)
 
-# Create shared library
-$(NAME): $(OBJECTS)
-	$(CC) $(CFLAGS) -shared -o $@ $^ -I$(PATH_INC)
-	@echo "Shared library $(NAME) created!"
+# Library name
+NAME = libft_malloc.so
+SYMLINK = libft_malloc_$(shell uname -m)_$(shell uname -s).so
 
-# Create symbolic link
-$(LINK_NAME): $(NAME)
-	ln -sf $(NAME) $(LINK_NAME)
-	@echo "Symbolic link $(LINK_NAME) -> $(NAME) created!"
+# Header files
+INCLUDES = -I$(INC_DIR) -I$(LIBFT_DIR)/includes -I$(LIBFT_DIR)
 
-# Compile object files
-$(PATH_OBJ)/%.o: $(PATH_SRC)/%.c
-	@mkdir -p $(PATH_OBJ)
-	$(CC) $(CFLAGS) -fPIC -c $< -o $@ -I$(PATH_INC)
+# Colors for pretty printing
+GREEN = \033[0;32m
+NC = \033[0m
+
+# Test executable name
+TEST_NAME = test_malloc
+
+# Libft
+LIBFT = $(LIBFT_DIR)/libft.a
+
+all: $(NAME)
+
+$(NAME): $(OBJ)
+	@echo "Creating dynamic library..."
+	@$(MAKE) -C $(LIBFT_DIR)
+	@$(CC) $(LDFLAGS) $(OBJ) $(LIBFT_DIR)/libft.a -o $(NAME)
+	@ln -sf $(NAME) $(SYMLINK)
+	@echo "${GREEN}Library $(NAME) created successfully!${NC}"
+
+$(LIBFT):
+	@echo "Compiling libft..."
+	@$(MAKE) -C $(LIBFT_DIR)
+
+# Create object directory
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR)/tests
+
+# Compile source files to object files
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	@echo "Compiling $<..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Compile test files
+$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
+	@echo "Compiling $<..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -I./tests -c $< -o $@
 
 # Clean object files
 clean:
-	@rm -rf $(PATH_OBJ)
-	@echo "Object files cleaned!"
+	@echo "Cleaning object files..."
+	@rm -rf $(OBJ_DIR)
+	@$(MAKE) -C $(LIBFT_DIR) clean
 
-# Full clean: remove objects, shared library, and symbolic link
+# Clean everything
 fclean: clean
-	@rm -f $(NAME) $(LINK_NAME) $(TEST_BIN)
-	@echo "All built files removed!"
+	@echo "Cleaning library files..."
+	@rm -f $(NAME) $(SYMLINK) $(TEST_NAME)
+	@$(MAKE) -C $(LIBFT_DIR) fclean
 
 # Rebuild everything
 re: fclean all
 
-# Compile the test binary
-test: $(NAME)
-	$(CC) $(CFLAGS) -o $(TEST_BIN) $(TESTS) -I$(PATH_INC) -I$(PATH_TEST) -L. -lft_malloc -pthread
-	@echo "Test binary $(TEST_BIN) created!"
+# Test the malloc implementation
+test: $(NAME) $(TEST_OBJ)
+	@echo "Compiling and running tests..."
+	@$(CC) $(CFLAGS) $(TEST_OBJ) -o $(TEST_NAME) -L. -lft_malloc -L$(LIBFT_DIR) -lft -lpthread
+	@echo "Running tests..."
+	@LD_LIBRARY_PATH=. ./$(TEST_NAME)
 
-# Run the test binary
-run_test: test
-	LD_LIBRARY_PATH=.:$(LD_LIBRARY_PATH) LD_PRELOAD=./libft_malloc.so ./$(TEST_BIN)
+.PHONY: all clean fclean re test 

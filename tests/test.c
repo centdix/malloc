@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "include.h"
+#include "test_include.h"
 
 // Replace with your custom malloc implementation
 #define malloc my_malloc
