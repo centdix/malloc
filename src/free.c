@@ -1,5 +1,30 @@
 #include "malloc.h"
 
+void free_heap(t_heap *heap) {
+    if (!heap) return;
+
+    munmap(heap, heap->total_size);
+}
+
+void remove_heap(t_heap *heap) {
+    if (!heap) return;
+
+    // Find the previous heap
+    t_heap *current = HEAD;
+    t_heap *prev = NULL;
+    while (current && current != heap) {
+        prev = current;
+        current = current->next;
+    }
+
+    // Remove the heap from the list
+    if (prev) {
+        prev->next = heap->next;
+    } else {
+        HEAD = heap->next;
+    }
+}
+
 void my_free(void *ptr) {
     if (!ptr) return;
 
@@ -39,6 +64,12 @@ void my_free(void *ptr) {
                 current = current->next;
             }
         }
+    }
+
+    // If only one free block is left, free the heap and remove it
+    if (heap && heap->block_count == 1 && heap->blocks->free) {
+        free_heap(heap);
+        remove_heap(heap);
     }
 
     pthread_mutex_unlock(&g_malloc_mutex);

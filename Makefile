@@ -29,7 +29,7 @@ NAME = libft_malloc.so
 SYMLINK = libft_malloc_$(shell uname -m)_$(shell uname -s).so
 
 # Header files
-INCLUDES = -I$(INC_DIR) -I$(LIBFT_DIR)/includes -I$(LIBFT_DIR)
+INCLUDES = -I$(INC_DIR) -I$(LIBFT_DIR)
 
 # Colors for pretty printing
 GREEN = \033[0;32m
@@ -88,6 +88,6 @@ test: $(NAME) $(TEST_OBJ)
 	@echo "Compiling and running tests..."
 	@$(CC) $(CFLAGS) $(TEST_OBJ) -o $(TEST_NAME) -L. -lft_malloc -L$(LIBFT_DIR) -lft -lpthread
 	@echo "Running tests..."
-	@LD_LIBRARY_PATH=. ./$(TEST_NAME)
+	@LD_LIBRARY_PATH=. gdb ./$(TEST_NAME)
 
 .PHONY: all clean fclean re test 

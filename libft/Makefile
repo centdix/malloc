@@ -1,4 +1,4 @@
-HEADER = libft.h
+HEADER = libft
 
 BONUS_SRCS = $(wildcard *.c)
 
