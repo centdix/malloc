@@ -147,6 +147,7 @@ void test_random_operations() {
         printf("Operation %d: ", i + 1);
         switch (operation) {
             case 0: // malloc
+                printf("malloc\n");
                 if (ptr_count < 50) {
                     size_t size = (rand() % 1000) + 1;  // Random size between 1-1000
                     ptrs[ptr_count] = malloc(size);
@@ -156,6 +157,7 @@ void test_random_operations() {
                 break;
                 
             case 1: // free
+                printf("free\n");
                 if (ptr_count > 0) {
                     int index = rand() % ptr_count;
                     if (ptrs[index] != NULL) {
@@ -171,6 +173,7 @@ void test_random_operations() {
                 break;
                 
             case 2: // realloc
+                printf("realloc\n");
                 if (ptr_count > 0) {
                     int index = rand() % ptr_count;
                     if (ptrs[index] != NULL) {
@@ -193,6 +196,7 @@ void test_random_operations() {
             free(ptrs[i]);
         }
     }
+    show_alloc_mem();
     
     printf("test_random_operations passed!\n\n");
 }

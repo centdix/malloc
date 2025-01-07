@@ -28,7 +28,7 @@ typedef struct s_heap {
 #define TINY_HEAP_SIZE (size_t)getpagesize()
 #define SMALL_HEAP_SIZE (size_t)(getpagesize() * 4)
 #define TINY_BLOCK_SIZE TINY_HEAP_SIZE / 128
-#define SMALL_BLOCK_SIZE SMALL_HEAP_SIZE / 64
+#define SMALL_BLOCK_SIZE SMALL_HEAP_SIZE / 128
 
 // Single global variable
 extern t_heap *HEAD;

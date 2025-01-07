@@ -32,16 +32,17 @@ void my_free(void *ptr) {
 
     // Get the block header by moving back sizeof(t_block)
     t_block *block = (t_block *)((char *)ptr - sizeof(t_block));
+
+    // Find the heap this block belongs to
+    t_heap *heap = find_heap_for_ptr(ptr);
     
     // Validate the block before using it
-    if (block->free) {
+    if (!heap || block->free) {
         // Block is already free, possible double free
         pthread_mutex_unlock(&g_malloc_mutex);
         return;
     }
     
-    // Find the heap this block belongs to
-    t_heap *heap = find_heap_for_ptr(ptr);
     if (heap) {
         // Mark the block as free
         block->free = true;
@@ -67,9 +68,9 @@ void my_free(void *ptr) {
     }
 
     // If only one free block is left, free the heap and remove it
-    if (heap && heap->block_count == 1 && heap->blocks->free) {
-        free_heap(heap);
+    if (heap && ((heap->block_count == 1 && heap->blocks->free) || heap->block_count == 0)) {
         remove_heap(heap);
+        free_heap(heap);
     }
 
     pthread_mutex_unlock(&g_malloc_mutex);

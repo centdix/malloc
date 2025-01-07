@@ -1,28 +1,38 @@
 #include "malloc.h"
 
+#include "malloc.h"
+#include <stdio.h>
+
 void show_alloc_mem() {
     pthread_mutex_lock(&g_malloc_mutex);
-    
+
     t_heap *cur = HEAD;
+    size_t total_allocated = 0;
     printf("Memory Allocation State:\n");
+
     while (cur) {
-        printf("Heap (%s): %p, Total Size: %zu, Free Size: %zu\n",
-               (cur->total_size == TINY_HEAP_SIZE) ? "TINY" :
-               (cur->total_size == SMALL_HEAP_SIZE) ? "SMALL" : "LARGE",
-               (void *)cur, cur->total_size, cur->free_size);
+        const char *heap_type = (cur->total_size == TINY_HEAP_SIZE) ? "TINY" :
+                                (cur->total_size == SMALL_HEAP_SIZE) ? "SMALL" : "LARGE";
+        printf("%s : %p\n", heap_type, (void *)cur);
 
         t_block *block = cur->blocks;
         while (block) {
-            printf("  Block: %p, Size: %zu, Free: %d\n",
-                   (void *)block, block->size, block->free);
+            if (!block->free) {
+                void *start = (void *)((char *)block + sizeof(t_block));
+                void *end = (void *)((char *)start + block->size);
+                printf("%p - %p : %zu bytes\n", start, end, block->size);
+                total_allocated += block->size;
+            }
             block = block->next;
         }
 
         cur = cur->next;
     }
 
+    printf("Total : %zu bytes\n", total_allocated);
+
     pthread_mutex_unlock(&g_malloc_mutex);
-} 
+}
 
 t_heap *find_heap_for_ptr(void *ptr) {
     t_heap *heap = HEAD;
