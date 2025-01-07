@@ -88,6 +88,6 @@ test: $(NAME) $(TEST_OBJ)
 	@echo "Compiling and running tests..."
 	@$(CC) $(CFLAGS) $(TEST_OBJ) -o $(TEST_NAME) -L. -lft_malloc -L$(LIBFT_DIR) -lft -lpthread
 	@echo "Running tests..."
-	@LD_LIBRARY_PATH=. gdb ./$(TEST_NAME)
+	@LD_LIBRARY_PATH=. ./$(TEST_NAME)
 
 .PHONY: all clean fclean re test 

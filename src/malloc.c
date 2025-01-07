@@ -6,7 +6,6 @@ pthread_mutex_t g_malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 t_heap *init_heap(size_t heap_size) {
     t_heap *heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (heap == MAP_FAILED) {
-        perror("mmap failed");
         return NULL;
     }
 
@@ -91,7 +90,6 @@ void *fill_free_block(t_heap *heap, size_t size) {
             }
 
             void *result = (char *)block + sizeof(t_block);
-            pthread_mutex_unlock(&g_malloc_mutex);
             return result;
         }
         block = block->next;

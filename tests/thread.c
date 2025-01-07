@@ -13,6 +13,37 @@
 #define NUM_THREADS 5
 #define NUM_ALLOCATIONS 15
 
+void *simple(void *arg) {
+    int thread_id = *(int *)arg;
+    void *pointers[NUM_ALLOCATIONS] = {NULL};
+
+    printf("\n=== Thread %d started ===\n", thread_id);
+
+    // Allocate memory in a loop
+    printf("\nThread %d - Starting allocations:\n", thread_id);
+    for (int i = 0; i < NUM_ALLOCATIONS; i++) {
+        size_t size = (rand() % 256) + 64;
+        pointers[i] = malloc(size);
+        if (pointers[i] == NULL) {
+            printf("Thread %d - Allocation failed at iteration %d\n", thread_id, i);
+        } else {
+            printf("Thread %d - Allocated %zu bytes at %p\n", thread_id, size, pointers[i]);
+        }
+    }
+
+    // Free allocated memory
+    printf("\nThread %d - Starting deallocations:\n", thread_id);
+    for (int i = 0; i < NUM_ALLOCATIONS; i++) {
+        if (pointers[i] != NULL) {
+            free(pointers[i]);
+            printf("Thread %d - Freed memory at %p\n", thread_id, pointers[i]);
+        }
+    }
+
+    printf("\n=== Thread %d finished ===\n", thread_id);
+    return NULL;
+}
+
 void *thread_function(void *arg) {
     int thread_id = *(int *)arg;
     void *pointers[NUM_ALLOCATIONS] = {NULL};
