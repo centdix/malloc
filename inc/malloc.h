@@ -10,12 +10,6 @@
 #include <string.h>
 #include <pthread.h>
 
-typedef enum {
-    HEAP_TINY,
-    HEAP_SMALL,
-    HEAP_LARGE
-} e_heap_type;
-
 typedef struct s_block {
     struct s_block *next;
     size_t size;
@@ -25,11 +19,10 @@ typedef struct s_block {
 typedef struct s_heap {
     struct s_heap *next;
     struct s_heap *prev;
-    t_block *blocks;   // Pointer to the first block in the heap
+    t_block *blocks;
     size_t block_count;
     size_t free_size;
     size_t total_size;
-    e_heap_type type;  // Type of the heap: TINY, SMALL, LARGE
 } t_heap;
 
 #define TINY_HEAP_SIZE (size_t)getpagesize()
@@ -44,9 +37,13 @@ extern t_heap *HEAD;
 extern pthread_mutex_t g_malloc_mutex;
 
 // Heap initialization and management
-t_heap *init_heap(size_t heap_size, e_heap_type type);
-t_heap *add_new_heap(size_t heap_size, e_heap_type type);
+t_heap *init_heap(size_t heap_size);
+t_heap *add_new_heap(size_t heap_size);
 t_heap *find_or_create_heap(size_t size);
+t_heap *create_heap_for_size(size_t block_size);
+t_heap *find_suitable_heap(size_t block_size);
+size_t get_heap_size(size_t block_size);
+void *fill_free_block(t_heap *heap, size_t size);
 
 // Memory allocation
 void *my_malloc(size_t size);

@@ -7,8 +7,8 @@ void show_alloc_mem() {
     printf("Memory Allocation State:\n");
     while (cur) {
         printf("Heap (%s): %p, Total Size: %zu, Free Size: %zu\n",
-               (cur->type == HEAP_TINY) ? "TINY" :
-               (cur->type == HEAP_SMALL) ? "SMALL" : "LARGE",
+               (cur->total_size == TINY_HEAP_SIZE) ? "TINY" :
+               (cur->total_size == SMALL_HEAP_SIZE) ? "SMALL" : "LARGE",
                (void *)cur, cur->total_size, cur->free_size);
 
         t_block *block = cur->blocks;
