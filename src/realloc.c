@@ -1,15 +1,15 @@
 #include "malloc.h"
 #include "libft.h"
 
-void *my_realloc(void *ptr, size_t size) {
+void *realloc(void *ptr, size_t size) {
     // If ptr is NULL, realloc behaves like malloc
     if (!ptr) {
-        return my_malloc(size);
+        return malloc(size);
     }
 
     // If size is 0 and ptr is not NULL, realloc behaves like free
     if (size == 0) {
-        my_free(ptr);
+        free(ptr);
         return NULL;
     }
 
@@ -43,7 +43,7 @@ void *my_realloc(void *ptr, size_t size) {
 
     // Need to allocate a new block
     pthread_mutex_unlock(&g_malloc_mutex);
-    void *new_ptr = my_malloc(size);
+    void *new_ptr = malloc(size);
     if (!new_ptr) {
         return NULL;
     }
@@ -54,7 +54,7 @@ void *my_realloc(void *ptr, size_t size) {
     pthread_mutex_unlock(&g_malloc_mutex);
 
     // Free old block
-    my_free(ptr);
+    free(ptr);
 
     return new_ptr;
 } 

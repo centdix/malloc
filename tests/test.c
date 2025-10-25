@@ -4,11 +4,6 @@
 #include <assert.h>
 #include "test_include.h"
 
-// Replace with your custom malloc implementation
-#define malloc my_malloc
-#define free my_free
-#define realloc my_realloc
-
 void test_basic_allocation() {
     printf("Running test_basic_allocation...\n");
     void *ptr = malloc(1); // Allocate 1 bytes

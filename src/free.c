@@ -25,7 +25,7 @@ void remove_heap(t_heap *heap) {
     }
 }
 
-void my_free(void *ptr) {
+void free(void *ptr) {
     if (!ptr) return;
 
     pthread_mutex_lock(&g_malloc_mutex);
