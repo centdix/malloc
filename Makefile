@@ -26,7 +26,10 @@ TEST_OBJ = $(TEST_SRCS:%.c=$(OBJ_DIR)/%.o)
 
 # Library name
 NAME = libft_malloc.so
-SYMLINK = libft_malloc_$(shell uname -m)_$(shell uname -s).so
+ifeq ($(HOSTTYPE),)
+	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
+endif
+SYMLINK = libft_malloc_$(HOSTTYPE).so
 
 # Header files
 INCLUDES = -I$(INC_DIR) -I$(LIBFT_DIR)
