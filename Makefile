@@ -1,11 +1,12 @@
 # Compiler and flags
 CC = gcc
+# CFLAGS = -Wall -Wextra -Werror -fPIC -O2 -g # Uncomment for debugging
 CFLAGS = -Wall -Wextra -Werror -fPIC
 LDFLAGS = -shared
 
 # Directories
 SRC_DIR = src
-INC_DIR = inc
+INC_DIR = includes
 OBJ_DIR = obj
 LIBFT_DIR = libft
 
