@@ -1,6 +1,7 @@
 gcc -o test4 test4.c -L. -lft_malloc && ./run_linux.sh ./test4
 gcc -o test4 test4.c -L. -lft_malloc && ./run_linux.sh ./test4
 gcc -o test2 test2.c && ./run_linux.sh /usr/bin/time -v ./test2
+gcc -o test1 test1.c && /usr/bin/time -v ./test1
 ./run_linux.sh /usr/bin/time -v ./test2   
 ./run_linux.sh /usr/bin/time -v ./test2
  nm -g libft_malloc.so
