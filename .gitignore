@@ -1,0 +1,19 @@
+# Compiled test binaries
+test0
+test1
+test2
+test3
+test4
+test5
+simple_test
+minimal_test
+test_many
+test_5000
+
+# Object files
+*.o
+*.so
+*.a
+
+# Other build artifacts
+*.out
