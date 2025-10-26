@@ -15,6 +15,13 @@ void *realloc(void *ptr, size_t size) {
 
     pthread_mutex_lock(&g_malloc_mutex);
 
+    // Validate that ptr belongs to a valid heap before accessing block metadata
+    t_heap *heap = find_heap_for_ptr(ptr);
+    if (!heap) {
+        pthread_mutex_unlock(&g_malloc_mutex);
+        return NULL;
+    }
+
     // Get the block header
     t_block *block = (t_block *)((char *)ptr - sizeof(t_block));
 
