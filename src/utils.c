@@ -39,9 +39,24 @@ t_heap *find_heap_for_ptr(void *ptr) {
     while (heap) {
         void *heap_start = (void *)heap;
         void *heap_end = (void *)((char *)heap + heap->total_size);
-        
+
+        // Check if pointer is within heap bounds
         if (ptr > heap_start && ptr < heap_end) {
-            return heap;
+            // Additional validation: check if ptr points to a valid block
+            // by ensuring it's properly aligned and within the blocks region
+            void *blocks_start = (void *)heap->blocks;
+
+            if (ptr >= blocks_start && ptr < heap_end) {
+                // Verify the pointer could be a valid allocation
+                // (points to data section, not block header)
+                t_block *potential_block = (t_block *)((char *)ptr - sizeof(t_block));
+
+                // Check if this block header is within valid range
+                if ((void *)potential_block >= blocks_start &&
+                    (void *)potential_block < heap_end) {
+                    return heap;
+                }
+            }
         }
         heap = heap->next;
     }

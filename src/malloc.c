@@ -4,6 +4,12 @@ t_heap *HEAD = NULL;
 pthread_mutex_t g_malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 t_heap *init_heap(size_t heap_size) {
+    // Validate that heap_size is large enough for metadata and at least one block
+    size_t min_size = sizeof(t_heap) + sizeof(t_block) + 1;
+    if (heap_size < min_size) {
+        return NULL;
+    }
+
     t_heap *heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (heap == MAP_FAILED) {
         return NULL;
@@ -12,7 +18,7 @@ t_heap *init_heap(size_t heap_size) {
     heap->next = NULL;
     heap->prev = NULL;
     heap->blocks = (t_block *)((char *)heap + sizeof(t_heap));
-    heap->block_count = 0;
+    heap->block_count = 1;  // Start at 1 since we initialize the first block
     heap->free_size = heap_size - sizeof(t_heap);
     heap->total_size = heap_size;
 
@@ -75,7 +81,15 @@ void *fill_free_block(t_heap *heap, size_t size) {
     while (block) {
         if (block->free && block->size >= size) {
             block->free = false;
-            heap->free_size -= sizeof(t_block) + size;
+
+            // Prevent integer underflow by checking before subtraction
+            size_t reduction = sizeof(t_block) + size;
+            if (heap->free_size >= reduction) {
+                heap->free_size -= reduction;
+            } else {
+                // Should not happen in normal operation, but prevent underflow
+                heap->free_size = 0;
+            }
 
             // Split the block if there's excess space
             if (block->size >= size + sizeof(t_block) + 1) {
