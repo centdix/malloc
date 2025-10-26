@@ -18,7 +18,7 @@ t_heap *init_heap(size_t heap_size) {
     heap->prev = NULL;
     heap->blocks = (t_block *)((char *)heap + sizeof(t_heap));
     heap->block_count = 1;  // Start at 1 since we initialize the first block
-    heap->free_size = heap_size - sizeof(t_heap);
+    heap->free_size = heap_size - sizeof(t_heap) - sizeof(t_block);
     heap->total_size = heap_size;
 
     // Initialize the first block

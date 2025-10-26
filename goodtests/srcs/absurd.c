@@ -85,10 +85,13 @@ void test_weird_sized_allocations() {
 	for (int i = 0; i < 12; i++) {
 		size_t size = (1UL << i) - 1; // 2^i - 1
 		pow2_ptrs[i] = malloc(size);
-		assert(pow2_ptrs[i] != NULL);
+		// malloc(0) can return NULL - that's valid per POSIX
+		if (size > 0) {
+			assert(pow2_ptrs[i] != NULL);
+		}
 
 		// Write to the end to ensure full allocation is usable
-		if (size > 0) {
+		if (size > 0 && pow2_ptrs[i] != NULL) {
 			((char *)pow2_ptrs[i])[size - 1] = 0xFF;
 		}
 	}
