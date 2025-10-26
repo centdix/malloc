@@ -30,15 +30,20 @@ void free(void *ptr) {
 
     pthread_mutex_lock(&g_malloc_mutex);
 
+    // Find the heap this block belongs to first
+    t_heap *heap = find_heap_for_ptr(ptr);
+
+    // Validate heap exists before accessing block metadata
+    if (!heap) {
+        pthread_mutex_unlock(&g_malloc_mutex);
+        return;
+    }
+
     // Get the block header by moving back sizeof(t_block)
     t_block *block = (t_block *)((char *)ptr - sizeof(t_block));
 
-    // Find the heap this block belongs to
-    t_heap *heap = find_heap_for_ptr(ptr);
-    
-    // Validate the block before using it
-    if (!heap || block->free) {
-        // Block is already free, possible double free
+    // Check if block is already free (double free protection)
+    if (block->free) {
         pthread_mutex_unlock(&g_malloc_mutex);
         return;
     }
