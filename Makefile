@@ -14,6 +14,7 @@ LIBFT_DIR = libft
 SRC = $(SRC_DIR)/malloc.c \
       $(SRC_DIR)/free.c \
       $(SRC_DIR)/realloc.c \
+      $(SRC_DIR)/calloc.c \
       $(SRC_DIR)/utils.c
 
 # Test source files

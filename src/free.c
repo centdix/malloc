@@ -33,14 +33,11 @@ void remove_heap(t_heap *heap) {
 void free(void *ptr) {
     if (!ptr) return;
 
-    pthread_mutex_lock(&g_malloc_mutex);
-
     // Find the heap this block belongs to first
     t_heap *heap = find_heap_for_ptr(ptr);
 
     // Validate heap exists before accessing block metadata
     if (!heap) {
-        pthread_mutex_unlock(&g_malloc_mutex);
         return;
     }
 
@@ -49,24 +46,23 @@ void free(void *ptr) {
 
     // Check if block is already free (double free protection)
     if (block->free) {
-        pthread_mutex_unlock(&g_malloc_mutex);
         return;
     }
-    
+
     if (heap) {
         // Mark the block as free
         block->free = true;
-        
+
         // Update heap's free size with the actual block size
         heap->free_size += block->size;
-        
+
         // Try to merge with adjacent free blocks
         t_block *current = heap->blocks;
         while (current && current->next) {
             if (current->free && current->next->free) {
                 // Update free_size before merging
                 heap->free_size += sizeof(t_block);
-                
+
                 // Merge blocks
                 current->size += sizeof(t_block) + current->next->size;
                 current->next = current->next->next;
@@ -82,6 +78,4 @@ void free(void *ptr) {
         remove_heap(heap);
         free_heap(heap);
     }
-
-    pthread_mutex_unlock(&g_malloc_mutex);
 }

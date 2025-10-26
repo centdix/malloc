@@ -76,8 +76,8 @@ void test_large_allocations() {
 void test_double_free() {
 	ft_printf("Testing double free behavior...\n");
 
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wuse-after-free"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuse-after-free"
 	{
 		void *ptr = malloc(10);
 		assert(ptr != NULL);
@@ -87,7 +87,7 @@ void test_double_free() {
 		// Should not crash, but might print an error
 		free(ptr);
 	}
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
 	ft_printf("PASSED: Double free handling\n");
 }
@@ -96,8 +96,8 @@ void test_double_free() {
 void test_invalid_free() {
 	ft_printf("Testing invalid free behavior...\n");
 
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wfree-nonheap-object"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfree-nonheap-object"
 	{
 		char stack_var[10];
 		void *invalid_ptr = stack_var;
@@ -105,19 +105,19 @@ void test_invalid_free() {
 		// Should not crash, but might print an error
 		free(invalid_ptr);
 	}
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
 	// Create a pointer that's in the middle of an allocation
 	void *ptr = malloc(100);
 	assert(ptr != NULL);
 
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wfree-nonheap-object"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfree-nonheap-object"
 	{
 		void *offset_ptr = (char *)ptr + 10;
 		free(offset_ptr); // Should be detected as invalid
 	}
-// #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
 	// Clean up valid pointer
 	free(ptr);
