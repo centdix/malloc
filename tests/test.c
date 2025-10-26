@@ -16,10 +16,10 @@ void test_basic_allocation() {
     printf("Allocated 100 bytes at %p\n", ptr2);
     show_alloc_mem();
 
+    printf("Freeing memory at %p\n", ptr);
     free(ptr); // Free the memory
-    printf("Freed memory at %p\n", ptr);
+    printf("Freeing memory at %p\n", ptr2);
 	free(ptr2); // Free the memory
-    printf("Freed memory at %p\n", ptr2);
     show_alloc_mem();
     printf("test_basic_allocation passed!\n\n");
 }
@@ -96,8 +96,8 @@ void test_fragmentation() {
     printf("Allocated three blocks: %p, %p, %p\n", p1, p2, p3);
     show_alloc_mem();
 
+    printf("Freeing the middle block at %p\n", p2);
     free(p2); // Free the middle block
-    printf("Freed the middle block at %p\n", p2);
     show_alloc_mem();
 
     void *p4 = malloc(150); // Allocate a new block that fits into the freed space
@@ -118,11 +118,13 @@ void test_double_free() {
     void *ptr = malloc(100);
     assert(ptr != NULL);
 
+    printf("Freeing memory at %p (first time)\n", ptr);
+    void *volatile tmp_ptr = ptr;
     free(ptr); // Free once
-    printf("Freed memory at %p\n", ptr);
     show_alloc_mem();
 
-    free(ptr); // Free again (should not crash)
+    printf("Freeing memory (second time - double free)\n");
+    free((void *)tmp_ptr); // Free again (should not crash)
     printf("Double free handled gracefully\n");
     show_alloc_mem();
     printf("test_double_free passed!\n\n");

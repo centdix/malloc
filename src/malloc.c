@@ -1,7 +1,6 @@
 #include "malloc.h"
 
 t_heap *HEAD = NULL;
-pthread_mutex_t g_malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 t_heap *init_heap(size_t heap_size) {
     // Validate that heap_size is large enough for metadata and at least one block
@@ -114,15 +113,12 @@ void *fill_free_block(t_heap *heap, size_t size) {
 void *malloc(size_t size) {
     if (size == 0) return NULL;
 
-    pthread_mutex_lock(&g_malloc_mutex);
-    
     size = (size + sizeof(void *) - 1) & ~(sizeof(void *) - 1); // Align size
 
     t_heap *heap = find_suitable_heap(size);
     if (!heap) {
         heap = create_heap_for_size(size);
         if (!heap) {
-            pthread_mutex_unlock(&g_malloc_mutex);
             return NULL;
         }
     }
@@ -130,23 +126,19 @@ void *malloc(size_t size) {
     // Find a free block in the selected heap
     void *result = fill_free_block(heap, size);
     if (result) {
-        pthread_mutex_unlock(&g_malloc_mutex);
         return result;
     }
 
     // If no suitable block was found, create a new heap
     heap = create_heap_for_size(size);
     if (!heap) {
-        pthread_mutex_unlock(&g_malloc_mutex);
         return NULL;
     }
 
     result = fill_free_block(heap, size);
     if (result) {
-        pthread_mutex_unlock(&g_malloc_mutex);
         return result;
     }
 
-    pthread_mutex_unlock(&g_malloc_mutex);
     return NULL;
 }

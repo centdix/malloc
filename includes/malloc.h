@@ -33,9 +33,6 @@ typedef struct s_heap {
 // Single global variable
 extern t_heap *HEAD;
 
-// Add mutex declaration
-extern pthread_mutex_t g_malloc_mutex;
-
 // Heap initialization and management
 t_heap *init_heap(size_t heap_size);
 t_heap *add_new_heap(size_t heap_size);
@@ -49,6 +46,7 @@ void *fill_free_block(t_heap *heap, size_t size);
 void *malloc(size_t size);
 void free(void *ptr);
 void *realloc(void *ptr, size_t size);
+void *calloc(size_t nmemb, size_t size);
 
 // Utility functions
 void show_alloc_mem(void);
