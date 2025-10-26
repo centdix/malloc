@@ -75,7 +75,15 @@ void *fill_free_block(t_heap *heap, size_t size) {
     while (block) {
         if (block->free && block->size >= size) {
             block->free = false;
-            heap->free_size -= sizeof(t_block) + size;
+
+            // Prevent integer underflow by checking before subtraction
+            size_t reduction = sizeof(t_block) + size;
+            if (heap->free_size >= reduction) {
+                heap->free_size -= reduction;
+            } else {
+                // Should not happen in normal operation, but prevent underflow
+                heap->free_size = 0;
+            }
 
             // Split the block if there's excess space
             if (block->size >= size + sizeof(t_block) + 1) {
