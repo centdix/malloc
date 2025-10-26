@@ -17,11 +17,16 @@ void remove_heap(t_heap *heap) {
         current = current->next;
     }
 
-    // Remove the heap from the list
+    // Remove the heap from the doubly-linked list
     if (prev) {
         prev->next = heap->next;
     } else {
         HEAD = heap->next;
+    }
+
+    // Update the prev pointer of the next heap to maintain doubly-linked list
+    if (heap->next) {
+        heap->next->prev = prev;
     }
 }
 
