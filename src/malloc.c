@@ -4,6 +4,12 @@ t_heap *HEAD = NULL;
 pthread_mutex_t g_malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 t_heap *init_heap(size_t heap_size) {
+    // Validate that heap_size is large enough for metadata and at least one block
+    size_t min_size = sizeof(t_heap) + sizeof(t_block) + 1;
+    if (heap_size < min_size) {
+        return NULL;
+    }
+
     t_heap *heap = mmap(NULL, heap_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (heap == MAP_FAILED) {
         return NULL;
