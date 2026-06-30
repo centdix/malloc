@@ -83,8 +83,19 @@ void *fill_free_block(t_heap *heap, size_t size) {
         if (block->free && block->size >= size) {
             block->free = false;
 
-            // Prevent integer underflow by checking before subtraction
-            size_t reduction = sizeof(t_block) + size;
+            // Decide up front whether the leftover is big enough to become its
+            // own free block, then remove from free_size exactly what leaves the
+            // free pool:
+            //   - split: this request consumes `size` data bytes plus one new
+            //     block header's worth of space.
+            //   - whole block consumed (no split): the entire original block
+            //     leaves the pool, so subtract its full size.
+            // The old code always subtracted size + sizeof(t_block); in the
+            // non-split case that over-counted by up to sizeof(t_block), leaving
+            // free_size too small so find_suitable_heap could skip a heap that
+            // still had room.
+            bool will_split = (block->size >= size + sizeof(t_block) + 1);
+            size_t reduction = will_split ? (size + sizeof(t_block)) : block->size;
             if (heap->free_size >= reduction) {
                 heap->free_size -= reduction;
             } else {
@@ -93,7 +104,7 @@ void *fill_free_block(t_heap *heap, size_t size) {
             }
 
             // Split the block if there's excess space
-            if (block->size >= size + sizeof(t_block) + 1) {
+            if (will_split) {
                 t_block *new_block = (t_block *)((char *)block + sizeof(t_block) + size);
                 new_block->size = block->size - size - sizeof(t_block);
                 new_block->free = true;
