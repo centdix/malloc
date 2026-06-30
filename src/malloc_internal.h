@@ -12,9 +12,6 @@
 #include <stddef.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <pthread.h>
 
 // malloc must return memory aligned for any type; on x86_64 that is 16 bytes.
@@ -49,9 +46,9 @@ typedef struct s_heap {
 // Single global heap list.
 extern t_heap *HEAD;
 
-// Global lock serializing all allocator entry points. Recursive so re-entrant
-// paths are safe: under LD_PRELOAD, printf() inside show_alloc_mem() calls back
-// into malloc() while we already hold the lock.
+// Global lock serializing all allocator entry points. Recursive as a safety
+// margin: the public wrappers take it once and the *_nolock cores never re-take
+// it, so a recursive type guards against any future re-entrant output path.
 extern pthread_mutex_t g_malloc_mutex;
 
 // Core allocation logic. These assume g_malloc_mutex is already held, which lets
