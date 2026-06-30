@@ -26,12 +26,13 @@ TEST_SRCS = tests/main.c \
 OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 TEST_OBJ = $(TEST_SRCS:%.c=$(OBJ_DIR)/%.o)
 
-# Library name
-NAME = libft_malloc.so
+# Library name. The subject requires the real library to be
+# libft_malloc_$HOSTTYPE.so with a libft_malloc.so symlink pointing to it.
 ifeq ($(HOSTTYPE),)
 	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
 endif
-SYMLINK = libft_malloc_$(HOSTTYPE).so
+NAME = libft_malloc_$(HOSTTYPE).so
+SYMLINK = libft_malloc.so
 
 # Header files
 INCLUDES = -I$(INC_DIR) -I$(LIBFT_DIR)

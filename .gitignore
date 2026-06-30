@@ -5,7 +5,7 @@
 *.out
 obj/
 
-# The built libft_malloc.so and the generated libft_malloc_<HOSTTYPE>.so
+# The built libft_malloc_<HOSTTYPE>.so and the generated libft_malloc.so
 # symlink are both covered by *.so above (build artifacts, never committed).
 
 # Compiled test binaries (root)
