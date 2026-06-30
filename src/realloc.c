@@ -15,6 +15,10 @@ void *realloc_nolock(void *ptr, size_t size) {
         return NULL;
     }
 
+    // Reject sizes that would overflow when rounded up (see malloc_nolock).
+    // realloc fails by returning NULL and leaving the original block intact.
+    if (size > (size_t)-1 - ALIGNMENT) return NULL;
+
     // Round up so an in-place split keeps the new block 16-aligned (matches
     // malloc_nolock, which rounds before storing block->size).
     size = ALIGN_UP(size);

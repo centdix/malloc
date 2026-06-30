@@ -116,6 +116,11 @@ void *fill_free_block(t_heap *heap, size_t size) {
 void *malloc_nolock(size_t size) {
     if (size == 0) return NULL;
 
+    // Reject sizes so large that rounding up would overflow. Such requests can
+    // never be served anyway; without this, ALIGN_UP wraps (e.g. SIZE_MAX -> 0)
+    // and we would hand back a bogus, far-too-small block.
+    if (size > (size_t)-1 - ALIGNMENT) return NULL;
+
     size = ALIGN_UP(size); // round up to ALIGNMENT so returned pointers stay 16-aligned
 
     t_heap *heap = find_suitable_heap(size);
