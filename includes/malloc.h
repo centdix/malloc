@@ -10,11 +10,20 @@
 #include <string.h>
 #include <pthread.h>
 
+// malloc must return memory aligned for any type; on x86_64 that is 16 bytes.
+#define ALIGNMENT 16
+#define ALIGN_UP(x) (((x) + (ALIGNMENT - 1)) & ~((size_t)(ALIGNMENT - 1)))
+
+// aligned(ALIGNMENT) rounds each header's sizeof up to a multiple of 16, so a
+// data pointer (header + sizeof(header)) stays 16-aligned: the heap base is
+// page-aligned, sizeof(t_heap)=48 and sizeof(t_block)=32 are both multiples of
+// 16, and allocation sizes are rounded with ALIGN_UP -> every block lands on a
+// 16-byte boundary.
 typedef struct s_block {
     struct s_block *next;
     size_t size;
     bool free;
-} t_block;
+} __attribute__((aligned(ALIGNMENT))) t_block;
 
 typedef struct s_heap {
     struct s_heap *next;
@@ -23,7 +32,7 @@ typedef struct s_heap {
     size_t block_count;
     size_t free_size;
     size_t total_size;
-} t_heap;
+} __attribute__((aligned(ALIGNMENT))) t_heap;
 
 #define TINY_HEAP_SIZE (size_t)(getpagesize() * 16)
 #define SMALL_HEAP_SIZE (size_t)(getpagesize() * 128)

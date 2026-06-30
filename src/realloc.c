@@ -15,6 +15,10 @@ void *realloc_nolock(void *ptr, size_t size) {
         return NULL;
     }
 
+    // Round up so an in-place split keeps the new block 16-aligned (matches
+    // malloc_nolock, which rounds before storing block->size).
+    size = ALIGN_UP(size);
+
     // Validate that ptr belongs to a valid heap before accessing block metadata
     t_heap *heap = find_heap_for_ptr(ptr);
     if (!heap) {
