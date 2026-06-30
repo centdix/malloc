@@ -5,11 +5,6 @@
 #include <assert.h>
 #include "test_include.h"
 
-// Replace with your custom malloc implementation
-#define malloc malloc
-#define free free
-#define realloc realloc
-
 #define NUM_THREADS 5
 #define NUM_ALLOCATIONS 15
 

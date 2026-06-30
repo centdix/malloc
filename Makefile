@@ -17,14 +17,8 @@ SRC = $(SRC_DIR)/malloc.c \
       $(SRC_DIR)/calloc.c \
       $(SRC_DIR)/utils.c
 
-# Test source files
-TEST_SRCS = tests/main.c \
-            tests/test.c \
-            tests/thread.c
-
 # Object files
 OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-TEST_OBJ = $(TEST_SRCS:%.c=$(OBJ_DIR)/%.o)
 
 # Library name. The subject requires the real library to be
 # libft_malloc_$HOSTTYPE.so with a libft_malloc.so symlink pointing to it.
@@ -40,9 +34,6 @@ INCLUDES = -I$(INC_DIR) -I$(LIBFT_DIR)
 # Colors for pretty printing
 GREEN = \033[0;32m
 NC = \033[0m
-
-# Test executable name
-TEST_NAME = test_malloc
 
 # Libft
 LIBFT = $(LIBFT_DIR)/libft.a
@@ -62,38 +53,31 @@ $(LIBFT):
 
 # Create object directory
 $(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)/tests
+	@mkdir -p $(OBJ_DIR)
 
 # Compile source files to object files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	@echo "Compiling $<..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-# Compile test files
-$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
-	@echo "Compiling $<..."
-	@$(CC) $(CFLAGS) $(INCLUDES) -I./tests -c $< -o $@
-
 # Clean object files
 clean:
 	@echo "Cleaning object files..."
 	@rm -rf $(OBJ_DIR)
 	@$(MAKE) -C $(LIBFT_DIR) clean
+	@$(MAKE) -C tests clean
 
 # Clean everything
 fclean: clean
 	@echo "Cleaning library files..."
-	@rm -f $(NAME) $(SYMLINK) $(TEST_NAME)
+	@rm -f $(NAME) $(SYMLINK)
 	@$(MAKE) -C $(LIBFT_DIR) fclean
 
 # Rebuild everything
 re: fclean all
 
-# Test the malloc implementation
-test: $(NAME) $(TEST_OBJ)
-	@echo "Compiling and running tests..."
-	@$(CC) $(CFLAGS) $(TEST_OBJ) -o $(TEST_NAME) -L. -lft_malloc -L$(LIBFT_DIR) -lft -lpthread
-	@echo "Running tests..."
-	@LD_LIBRARY_PATH=. ./$(TEST_NAME)
+# Build and run the full test suite (subject + unit + integration).
+test: $(NAME)
+	@$(MAKE) -C tests
 
-.PHONY: all clean fclean re test 
+.PHONY: all clean fclean re test
