@@ -51,7 +51,7 @@ all: $(NAME)
 $(NAME): $(OBJ)
 	@echo "Creating dynamic library..."
 	@$(MAKE) -C $(LIBFT_DIR)
-	@$(CC) $(LDFLAGS) $(OBJ) $(LIBFT_DIR)/libft.a -o $(NAME)
+	@$(CC) $(LDFLAGS) $(OBJ) $(LIBFT_DIR)/libft.a -lpthread -o $(NAME)
 	@ln -sf $(NAME) $(SYMLINK)
 	@echo "${GREEN}Library $(NAME) created successfully!${NC}"
 

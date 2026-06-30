@@ -30,7 +30,8 @@ void remove_heap(t_heap *heap) {
     }
 }
 
-void free(void *ptr) {
+// Core free logic. Assumes g_malloc_mutex is already held.
+void free_nolock(void *ptr) {
     if (!ptr) return;
 
     // Find the heap this block belongs to first
@@ -78,4 +79,11 @@ void free(void *ptr) {
         remove_heap(heap);
         free_heap(heap);
     }
+}
+
+// Public entry point: lock, run the core, unlock.
+void free(void *ptr) {
+    pthread_mutex_lock(&g_malloc_mutex);
+    free_nolock(ptr);
+    pthread_mutex_unlock(&g_malloc_mutex);
 }

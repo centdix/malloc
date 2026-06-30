@@ -1,6 +1,8 @@
+#define _GNU_SOURCE  // for PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 #include "malloc.h"
 
 t_heap *HEAD = NULL;
+pthread_mutex_t g_malloc_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 t_heap *init_heap(size_t heap_size) {
     // Validate that heap_size is large enough for metadata and at least one block
@@ -110,7 +112,8 @@ void *fill_free_block(t_heap *heap, size_t size) {
     return NULL;
 }
 
-void *malloc(size_t size) {
+// Core allocation logic. Assumes g_malloc_mutex is already held.
+void *malloc_nolock(size_t size) {
     if (size == 0) return NULL;
 
     size = (size + sizeof(void *) - 1) & ~(sizeof(void *) - 1); // Align size
@@ -141,4 +144,12 @@ void *malloc(size_t size) {
     }
 
     return NULL;
+}
+
+// Public entry point: lock, run the core, unlock.
+void *malloc(size_t size) {
+    pthread_mutex_lock(&g_malloc_mutex);
+    void *ptr = malloc_nolock(size);
+    pthread_mutex_unlock(&g_malloc_mutex);
+    return ptr;
 }

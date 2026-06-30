@@ -33,6 +33,20 @@ typedef struct s_heap {
 // Single global variable
 extern t_heap *HEAD;
 
+// Global lock serializing all allocator entry points.
+// Recursive so that re-entrant paths are safe: realloc()/calloc() reach the
+// allocator through *_nolock cores, but libc routines such as printf() (used by
+// show_alloc_mem) call back into malloc() while we already hold the lock when
+// this library is LD_PRELOAD'ed.
+extern pthread_mutex_t g_malloc_mutex;
+
+// Internal cores: perform the real work WITHOUT taking the lock. They assume
+// the caller already holds g_malloc_mutex, which lets realloc reuse malloc/free
+// without re-locking. The public malloc/free/realloc are thin locking wrappers.
+void *malloc_nolock(size_t size);
+void free_nolock(void *ptr);
+void *realloc_nolock(void *ptr, size_t size);
+
 // Heap initialization and management
 t_heap *init_heap(size_t heap_size);
 t_heap *add_new_heap(size_t heap_size);

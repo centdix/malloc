@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 void show_alloc_mem() {
+    pthread_mutex_lock(&g_malloc_mutex);
     t_heap *cur = HEAD;
     size_t total_allocated = 0;
     printf("Memory Allocation State:\n");
@@ -28,6 +29,7 @@ void show_alloc_mem() {
     }
 
     printf("Total : %zu bytes\n", total_allocated);
+    pthread_mutex_unlock(&g_malloc_mutex);
 }
 
 t_heap *find_heap_for_ptr(void *ptr) {
