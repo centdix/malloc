@@ -35,22 +35,20 @@ t_heap *find_heap_for_ptr(void *ptr) {
         void *heap_start = (void *)heap;
         void *heap_end = (void *)((char *)heap + heap->total_size);
 
-        // Check if pointer is within heap bounds
+        // Quick reject: ptr must fall inside this heap's mapping at all.
         if (ptr > heap_start && ptr < heap_end) {
-            // Additional validation: check if ptr points to a valid block
-            // by ensuring it's properly aligned and within the blocks region
-            void *blocks_start = (void *)heap->blocks;
-
-            if (ptr >= blocks_start && ptr < heap_end) {
-                // Verify the pointer could be a valid allocation
-                // (points to data section, not block header)
-                t_block *potential_block = (t_block *)((char *)ptr - sizeof(t_block));
-
-                // Check if this block header is within valid range
-                if ((void *)potential_block >= blocks_start &&
-                    (void *)potential_block < heap_end) {
+            // Confirm ptr is the user pointer of an actual block in this heap,
+            // not merely some interior address. Accepting interior pointers let
+            // calls like free(p + 10) pass validation, after which the block
+            // header would be read from the middle of a live allocation and
+            // corrupt the heap. Walking the block list and requiring an exact
+            // match rejects those before any metadata is touched.
+            t_block *block = heap->blocks;
+            while (block) {
+                if ((void *)((char *)block + sizeof(t_block)) == ptr) {
                     return heap;
                 }
+                block = block->next;
             }
         }
         heap = heap->next;
