@@ -1,19 +1,39 @@
-# Compiled test binaries
-test0
-test1
-test2
-test3
-test4
-test5
-simple_test
-minimal_test
-test_many
-test_5000
-
-# Object files
+# Build output
 *.o
-*.so
 *.a
-
-# Other build artifacts
+*.so
 *.out
+obj/
+
+# The built libft_malloc_<HOSTTYPE>.so and the generated libft_malloc.so
+# symlink are both covered by *.so above (build artifacts, never committed).
+
+# Compiled test binaries (root)
+/test0
+/test1
+/test2
+/test3
+/test4
+/test5
+/simple_test
+/minimal_test
+/test_many
+/test_5000
+/test_malloc
+
+# Compiled test binaries (goodtests)
+/goodtests/test_basic
+/goodtests/test_edge_cases
+/goodtests/test_advanced
+/goodtests/test_absurd
+/goodtests/test_thread
+/goodtests/test_performance
+/goodtests/test_gnl
+
+# Debug / crash artifacts
+core
+core.*
+vgcore.*
+
+# Local tooling / editor config
+.claude/

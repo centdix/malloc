@@ -1,6 +1,8 @@
-#include "malloc.h"
+#define _GNU_SOURCE  // for PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+#include "malloc_internal.h"
 
 t_heap *HEAD = NULL;
+pthread_mutex_t g_malloc_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 t_heap *init_heap(size_t heap_size) {
     // Validate that heap_size is large enough for metadata and at least one block
@@ -81,8 +83,19 @@ void *fill_free_block(t_heap *heap, size_t size) {
         if (block->free && block->size >= size) {
             block->free = false;
 
-            // Prevent integer underflow by checking before subtraction
-            size_t reduction = sizeof(t_block) + size;
+            // Decide up front whether the leftover is big enough to become its
+            // own free block, then remove from free_size exactly what leaves the
+            // free pool:
+            //   - split: this request consumes `size` data bytes plus one new
+            //     block header's worth of space.
+            //   - whole block consumed (no split): the entire original block
+            //     leaves the pool, so subtract its full size.
+            // The old code always subtracted size + sizeof(t_block); in the
+            // non-split case that over-counted by up to sizeof(t_block), leaving
+            // free_size too small so find_suitable_heap could skip a heap that
+            // still had room.
+            bool will_split = (block->size >= size + sizeof(t_block) + 1);
+            size_t reduction = will_split ? (size + sizeof(t_block)) : block->size;
             if (heap->free_size >= reduction) {
                 heap->free_size -= reduction;
             } else {
@@ -91,7 +104,7 @@ void *fill_free_block(t_heap *heap, size_t size) {
             }
 
             // Split the block if there's excess space
-            if (block->size >= size + sizeof(t_block) + 1) {
+            if (will_split) {
                 t_block *new_block = (t_block *)((char *)block + sizeof(t_block) + size);
                 new_block->size = block->size - size - sizeof(t_block);
                 new_block->free = true;
@@ -110,10 +123,16 @@ void *fill_free_block(t_heap *heap, size_t size) {
     return NULL;
 }
 
-void *malloc(size_t size) {
+// Core allocation logic. Assumes g_malloc_mutex is already held.
+void *malloc_nolock(size_t size) {
     if (size == 0) return NULL;
 
-    size = (size + sizeof(void *) - 1) & ~(sizeof(void *) - 1); // Align size
+    // Reject sizes so large that rounding up would overflow. Such requests can
+    // never be served anyway; without this, ALIGN_UP wraps (e.g. SIZE_MAX -> 0)
+    // and we would hand back a bogus, far-too-small block.
+    if (size > (size_t)-1 - ALIGNMENT) return NULL;
+
+    size = ALIGN_UP(size); // round up to ALIGNMENT so returned pointers stay 16-aligned
 
     t_heap *heap = find_suitable_heap(size);
     if (!heap) {
@@ -141,4 +160,12 @@ void *malloc(size_t size) {
     }
 
     return NULL;
+}
+
+// Public entry point: lock, run the core, unlock.
+void *malloc(size_t size) {
+    pthread_mutex_lock(&g_malloc_mutex);
+    void *ptr = malloc_nolock(size);
+    pthread_mutex_unlock(&g_malloc_mutex);
+    return ptr;
 }

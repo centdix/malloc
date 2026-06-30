@@ -1,17 +1,27 @@
-#include "malloc.h"
+#include "malloc_internal.h"
 #include "libft.h"
 
-void *realloc(void *ptr, size_t size) {
+// Core realloc logic. Assumes g_malloc_mutex is already held, so it reuses the
+// *_nolock cores instead of the public malloc/free (which would re-lock).
+void *realloc_nolock(void *ptr, size_t size) {
     // If ptr is NULL, realloc behaves like malloc
     if (!ptr) {
-        return malloc(size);
+        return malloc_nolock(size);
     }
 
     // If size is 0 and ptr is not NULL, realloc behaves like free
     if (size == 0) {
-        free(ptr);
+        free_nolock(ptr);
         return NULL;
     }
+
+    // Reject sizes that would overflow when rounded up (see malloc_nolock).
+    // realloc fails by returning NULL and leaving the original block intact.
+    if (size > (size_t)-1 - ALIGNMENT) return NULL;
+
+    // Round up so an in-place split keeps the new block 16-aligned (matches
+    // malloc_nolock, which rounds before storing block->size).
+    size = ALIGN_UP(size);
 
     // Validate that ptr belongs to a valid heap before accessing block metadata
     t_heap *heap = find_heap_for_ptr(ptr);
@@ -45,7 +55,7 @@ void *realloc(void *ptr, size_t size) {
     }
 
     // Need to allocate a new block
-    void *new_ptr = malloc(size);
+    void *new_ptr = malloc_nolock(size);
     if (!new_ptr) {
         return NULL;
     }
@@ -54,7 +64,15 @@ void *realloc(void *ptr, size_t size) {
     ft_memcpy(new_ptr, ptr, old_size);
 
     // Free the old block
-    free(ptr);
+    free_nolock(ptr);
 
     return new_ptr;
-} 
+}
+
+// Public entry point: lock, run the core, unlock.
+void *realloc(void *ptr, size_t size) {
+    pthread_mutex_lock(&g_malloc_mutex);
+    void *res = realloc_nolock(ptr, size);
+    pthread_mutex_unlock(&g_malloc_mutex);
+    return res;
+}
