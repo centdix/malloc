@@ -8,27 +8,20 @@ obj/
 # The built libft_malloc_<HOSTTYPE>.so and the generated libft_malloc.so
 # symlink are both covered by *.so above (build artifacts, never committed).
 
-# Compiled test binaries (root)
-/test0
-/test1
-/test2
-/test3
-/test4
-/test5
-/simple_test
-/minimal_test
-/test_many
-/test_5000
-/test_malloc
-
-# Compiled test binaries (goodtests)
-/goodtests/test_basic
-/goodtests/test_edge_cases
-/goodtests/test_advanced
-/goodtests/test_absurd
-/goodtests/test_thread
-/goodtests/test_performance
-/goodtests/test_gnl
+# Compiled test binaries (tests/)
+/tests/subj_test1
+/tests/subj_test2
+/tests/subj_test3
+/tests/subj_test4
+/tests/subj_test5
+/tests/unit_tests
+/tests/test_basic
+/tests/test_edge_cases
+/tests/test_advanced
+/tests/test_absurd
+/tests/test_thread
+/tests/test_performance
+/tests/test_gnl
 
 # Debug / crash artifacts
 core
