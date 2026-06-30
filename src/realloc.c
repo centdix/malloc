@@ -1,4 +1,4 @@
-#include "malloc.h"
+#include "malloc_internal.h"
 #include "libft.h"
 
 // Core realloc logic. Assumes g_malloc_mutex is already held, so it reuses the

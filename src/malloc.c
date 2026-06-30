@@ -1,5 +1,5 @@
 #define _GNU_SOURCE  // for PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-#include "malloc.h"
+#include "malloc_internal.h"
 
 t_heap *HEAD = NULL;
 pthread_mutex_t g_malloc_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;

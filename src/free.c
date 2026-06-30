@@ -1,4 +1,4 @@
-#include "malloc.h"
+#include "malloc_internal.h"
 
 void free_heap(t_heap *heap) {
     if (!heap) return;

@@ -1,7 +1,4 @@
-#include "malloc.h"
-
-#include "malloc.h"
-#include <stdio.h>
+#include "malloc_internal.h"
 
 void show_alloc_mem() {
     pthread_mutex_lock(&g_malloc_mutex);
